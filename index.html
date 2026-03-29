@@ -216,7 +216,7 @@ textarea.inp{resize:vertical;min-height:76px;line-height:1.5}
 
 /* ── RIGHT PANEL ── */
 .result-panel{position:sticky;top:80px;align-self:start;max-height:calc(100vh - 100px);overflow-y:auto;padding-right:5px;display:flex;flex-direction:column;gap:16px}
-.res-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)}
+.res-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh);flex-shrink:0}
 .res-header{
   padding:20px 22px;
   background:linear-gradient(135deg,#F0F9FF,#E0F2FE);
@@ -770,7 +770,7 @@ function bindEvents(i){
     on("in-notes","input",e=>{S.notes=e.target.value;save();});
   }
   if(i===2){
-    on("in-kw","input",e=>{S.kwInput=Math.max(1,+e.target.value||1);S.manualCount=null;calc();renderBody(2);});
+    on("in-kw","input",e=>{S.kwInput=Math.max(1,+e.target.value||1);S.manualCount=null;calc();});
   }
   if(i===3){
     on("in-inv-nom","change",e=>{S.manualNom=e.target.value?+e.target.value:null;S.manualCount=null;calc();renderBody(3);});
@@ -1049,14 +1049,26 @@ async function fetchCSV(g){
   const res=await fetch(B_URL+g);
   if(!res.ok)throw new Error("NetErr");
   const t=await res.text();
-  return t.split('\n').map(l=>l.trim()).filter(Boolean).map(parseCSVLine);
+  const lastModified=res.headers.get('Last-Modified')||res.headers.get('date')||null;
+  return {rows:t.split('\n').map(l=>l.trim()).filter(Boolean).map(parseCSVLine), lastModified};
 }
 
 async function initApp() {
   try {
-    const [pCSV, mCSV, gCSV, hCSV, cCSV] = await Promise.all([
+    const [pRes, mRes, gRes, hRes, cRes] = await Promise.all([
       fetchCSV(GIDS.panels), fetchCSV(GIDS.mounts), fetchCSV(GIDS.gridInv), fetchCSV(GIDS.hybridInv), fetchCSV(GIDS.cable)
     ]);
+    const [pCSV, mCSV, gCSV, hCSV, cCSV] = [pRes.rows, mRes.rows, gRes.rows, hRes.rows, cRes.rows];
+
+    // Оновлення бейджа дати прайсу
+    const _lm = pRes.lastModified;
+    if(_lm){
+      const _d=new Date(_lm);
+      if(!isNaN(_d)){
+        const _mn=['Січ','Лют','Бер','Кві','Тра','Чер','Лип','Сер','Вер','Жов','Лис','Гру'];
+        document.querySelector('.badge').textContent=`🌿 Прайс ${_mn[_d.getMonth()]}. ${_d.getFullYear()}`;
+      }
+    }
     
     PANELS=[];
     for(const r of pCSV){
