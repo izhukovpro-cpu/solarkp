@@ -215,7 +215,7 @@ textarea.inp{resize:vertical;min-height:76px;line-height:1.5}
 .ac-total-val{font-size:18px;font-weight:800;color:var(--sun);font-family:'DM Mono',monospace}
 
 /* ── RIGHT PANEL ── */
-.result-panel{position:sticky;top:80px;height:fit-content;display:flex;flex-direction:column;gap:16px}
+.result-panel{position:sticky;top:80px;height:fit-content;max-height:calc(100vh - 100px);overflow-y:auto;padding-right:5px;display:flex;flex-direction:column;gap:16px}
 .res-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)}
 .res-header{
   padding:20px 22px;
@@ -339,15 +339,50 @@ table.kt tr:last-child td{border-bottom:none}
 .kp-sign{margin-top:18px;color:var(--s2);font-size:14px;font-weight:600;line-height:1.8}
 .kp-sign small{font-weight:400;color:var(--s3)}
 
+.loader-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg); z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.spinner {
+  width: 44px; height: 44px; border: 4px solid var(--sky-lt);
+  border-top-color: var(--sky); border-radius: 50%;
+  animation: spin 1s linear infinite; margin-bottom: 20px;
+}
+.loader-text { font-size: 16px; font-weight: 700; color: var(--sky); letter-spacing: 0.5px; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+.result-panel::-webkit-scrollbar{width:4px;}
+.result-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.step-header:hover { background: linear-gradient(to right, var(--sky-lt), #F0F9FF); }
+
+@media(max-width: 768px){
+  .btn-kp { position: sticky; bottom: 16px; z-index: 100; box-shadow: 0 10px 30px rgba(22,163,74,.4); }
+  .result-panel { max-height: none !important; overflow-y: visible !important; }
+}
+
+@page { size: A4 portrait; margin: 20mm; }
 @media print{
-  .topbar,.kp-toolbar{display:none}
+  body, html { background: #fff; color: #000; font-size: 11pt; }
+  .topbar,.kp-toolbar{display:none !important}
   #calc-page{display:none!important}
-  #kp-page{display:block!important;background:#fff}
-  .kp-doc{padding:20px}
+  #kp-page{display:block!important;background:#fff; min-height: auto;}
+  .kp-doc{padding:0 !important; max-width: 100%; margin: 0; box-shadow: none; border: none;}
+  .kp-banner { border-radius: 8px; margin-bottom: 20px; padding: 15px 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000 !important; background: #e0f2fe !important; border: 1px solid #bae6fd;}
+  .kp-title-block, .kp-tbl-wrap, .kp-footer { box-shadow: none; border: 1px solid #ddd; }
+  .kp-footer { page-break-inside: avoid; }
+  table.kt th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000 !important; }
+  .tr-g td { background: #e0f2fe !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; color: #000 !important; }
+  .tr-acc td { background: #e2e8f0 !important; color: #000 !important; font-weight: 800; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-top: 2px solid #000;}
+  .kp-bn, .kp-bs, .kp-brl, .kp-brd { color: #0f172a !important; }
+  .tr-s td { color: #000 !important; background: #f8fafc !important; }
+  .tr-tot td { color: #000 !important; }
+  .tr-dim td { color: #333 !important; }
 }
 </style>
 </head>
 <body>
+<div id="loader" class="loader-overlay"><div class="spinner"></div><div class="loader-text">Отримання актуальних цін з бази...</div></div>
 
 <!-- ═══════════ CALC PAGE ═══════════ -->
 <div id="calc-page">
@@ -423,47 +458,10 @@ table.kt tr:last-child td{border-bottom:none}
 
 <script>
 // ═══════ ПРАЙС ═══════
-const PANELS=[
-  {model:"LR5-54HTD-430M", label:"Longi Solar 430 Вт BF",            power:430,price:0.120,avail:"в наявності"},
-  {model:"LR8-48HGD-440M", label:"Longi Solar 440 Вт BF чорна рама", power:440,price:0.180,avail:"в резерві"},
-  {model:"JKM435N-54HL4-B",label:"Jinko Solar 435 Вт",                power:435,price:0.165,avail:"в наявності"},
-  {model:"LR8-48HGD-445M", label:"Longi Solar 445 Вт BF чорна рама", power:445,price:0.180,avail:"в наявності"},
-  {model:"LR5-72HTH-585M", label:"Longi Solar 585 Вт",                power:585,price:0.130,avail:"в наявності"},
-  {model:"LR5-72HGD-580M", label:"Longi Solar 580 Вт",                power:580,price:0.120,avail:"в дорозі"},
-  {model:"LR8-66HGD-615M", label:"Longi Solar 615 Вт BF",             power:615,price:0.150,avail:"в резерві"},
-  {model:"LR8-66HGD-620M", label:"Longi Solar 620 Вт BF",             power:620,price:0.160,avail:"в резерві"},
-  {model:"LR7-72HVH-645M", label:"Longi Solar 645 Вт",                power:645,price:0.135,avail:"в наявності"},
-  {model:"TWMNH-54HD500W", label:"TONGWEI 500 Вт BF Topcon N-Type",   power:500,price:0.125,avail:"в резерві"},
-  {model:"TWMND-78HD635W", label:"TONGWEI 635 Вт BF Topcon N-Type",   power:635,price:0.125,avail:"в наявності"},
-  {model:"TWMNH-66HD620W", label:"TONGWEI 620 Вт BF Topcon N-Type",   power:620,price:0.175,avail:"в наявності"},
-  {model:"TWMND-72HD590W", label:"TONGWEI 590 Вт BF Topcon N-Type",   power:590,price:0.175,avail:"в наявності"},
-  {model:"TWMNH-66HD635W", label:"TONGWEI 635 Вт",                    power:635,price:0.165,avail:"в дорозі"},
-];
-const H_INV={
-  50:{model:"SUN-50K-SG01HP3-EU-BM4",price:4200},
-  60:{model:"SUN-60K-SG02HP3-EU-EM6",price:5475},
-  75:{model:"SUN-75K-SG02HP3-EU-EM6",price:5750},
-  80:{model:"SUN-80K-SG02HP3-EU-EM6",price:5950},
-  100:{model:"SUN-100K-HV (запит)",price:8200},
-  125:{model:"SUN-125K-HV (запит)",price:9500},
-};
-const G_INV={
-  10:{model:"SUN-10K-G06P3-EU-AM2-P1",price:470},
-  15:{model:"SUN-15K-G06P3-EU-AM2-P1",price:660},
-  20:{model:"SUN-20K-G05",price:705},
-  25:{model:"SUN-25K-G05",price:760},
-  30:{model:"SUN-30K-G04",price:930},
-  35:{model:"SUN-35K-G04",price:1090},
-  50:{model:"SUN-50K-G04",price:1430},
-  60:{model:"SUN-60K-G04P3-EU-AM4",price:1835},
-  80:{model:"SUN-80K-G04P3-EU-AM4",price:2060},
-  100:{model:"SUN-100K-G03",price:2400},
-  110:{model:"SUN-110K-G03",price:2600},
-  120:{model:"SUN-120K-G01P3-EU",price:2970},
-  125:{model:"SUN-125K-G01P3-EU",price:3100},
-  130:{model:"SUN-130K-G01P3-EU-AM8",price:3340},
-};
-const MOUNT={
+let PANELS=[];
+let H_INV={};
+let G_INV={};
+let MOUNT={
   flat_south:{label:"Баластна Південь",price:25.50},
   flat_ew:{label:"Баластна Схід-Захід",price:27.00},
   pitched:{label:"Під металопрофіль",price:18.50},
@@ -475,8 +473,9 @@ const ROOF=[
   {key:"pitched",label:"Скатна покрівля",orient:"south"},
 ];
 const DC_AC={south:1.3,ew:1.6};
-const STR=17, CABLE_K=1.5, CABLE_P=1009, AC_KW=35, GEN=0.10, VAT=0.20, KP_DAYS=10;
-const STORE="solar_kp_v10";
+const STR=17, CABLE_K=1.5, AC_KW=35, GEN=0.10, VAT=0.20, KP_DAYS=10;
+let CABLE_P = 1009;
+const STORE="solar_kp_v21";
 
 // ═══════ STATE ═══════
 const DEF={
@@ -484,7 +483,8 @@ const DEF={
   isGround:false,roofKey:"flat_south",
   powerMode:"dc",kwInput:400,
   invType:"hybrid",manualNom:null,manualCount:null,invWithUZE:false,
-  panelIdx:0,usdRate:44.5,
+  hardwareNoVAT:false,
+  panelModel:null,usdRate:44.5,
   step:0,
 };
 let S={...DEF};
@@ -520,7 +520,7 @@ function pickInv(acKw,maxNom,invMap){
 
 let C={};
 function calcCapex(){
-  const panel=PANELS[S.panelIdx];
+  const panel=PANELS.find(p=>p.model===S.panelModel)||PANELS[0];
   const orient=S.isGround?"south":(ROOF.find(r=>r.key===S.roofKey)?.orient||"south");
   const mkey=S.isGround?"ground":S.roofKey;
   const mount=MOUNT[mkey];
@@ -555,7 +555,7 @@ function calcCapex(){
   const sesTotal=panelCost+invCost+mountCost+cableCost+acNetCost+workCost;
   const genCost=sesTotal*GEN;
   const sesNoVAT=sesTotal+genCost;
-  const sesVAT=sesNoVAT*VAT;
+  const sesVAT=(S.hardwareNoVAT ? (mountCost+cableCost+acNetCost+workCost+genCost) : sesNoVAT)*VAT;
   const sesWithVAT=sesNoVAT+sesVAT;
 
   C={
@@ -569,6 +569,8 @@ function calcCapex(){
     invTotalAC:inv.totalAC,
   };
 }
+
+function toggleHardwareVAT(){S.hardwareNoVAT=!S.hardwareNoVAT;calc();renderBody(4);}
 
 function calc(){
   calcCapex();
@@ -726,8 +728,8 @@ function stepHTML(i){
   }
 
   if(i===4){
-    const p=PANELS[S.panelIdx];
-    const opts=PANELS.map((pl,idx)=>`<option value="${idx}"${S.panelIdx==idx?" selected":""}>${pl.label} · $${(pl.price*pl.power).toFixed(2)}/шт [${pl.avail}]</option>`).join("");
+    const p=PANELS.find(x=>x.model===S.panelModel)||PANELS[0];
+    const opts=PANELS.map(pl=>`<option value="${esc(pl.model)}"${S.panelModel===pl.model?" selected":""}>${pl.label} · $${(pl.price*pl.power).toFixed(2)}/шт [${pl.avail}]</option>`).join("");
     return `
       <div class="fld"><label class="lbl">Модель панелі · ${PANELS.length} позицій</label>
         <select class="inp" id="in-panel">${opts}</select>
@@ -740,8 +742,18 @@ function stepHTML(i){
       <div class="fld"><label class="lbl">Курс USD / грн</label>
         <input class="inp" type="number" id="in-rate" value="${S.usdRate}" step="0.5">
       </div>
+      <div class="fld" onclick="toggleHardwareVAT()">
+        <div class="chk-row${S.hardwareNoVAT?" chk":""}">
+          <div class="chkbox"><span class="chkmark">✓</span></div>
+          <div>
+            <div class="chk-title">Купівля панелей та інверторів у нерезидента (без ПДВ)</div>
+            <div class="chk-sub">ПДВ 20% не буде нараховуватись на вартість панелей та інверторів</div>
+          </div>
+        </div>
+      </div>
       <div class="step-nav">
         <button class="btn-prev" onclick="goStep(3)">← Назад</button>
+        <button class="btn-kp" style="padding:10px 22px;border-radius:8px;font-size:14px;box-shadow:none;width:auto" onclick="showKP()">📄 Сформувати КП →</button>
       </div>`;
   }
   return "";
@@ -765,7 +777,7 @@ function bindEvents(i){
     on("in-inv-cnt","input",e=>{const v=parseInt(e.target.value);if(v>0){S.manualCount=v;calc();updateInvDisp();}});
   }
   if(i===4){
-    on("in-panel","change",e=>{S.panelIdx=+e.target.value;S.manualCount=null;calc();renderBody(4);});
+    on("in-panel","change",e=>{S.panelModel=e.target.value;S.manualCount=null;calc();renderBody(4);});
     on("in-rate","input",e=>{S.usdRate=Math.max(1,+e.target.value||1);calc();});
   }
 }
@@ -814,7 +826,7 @@ function updatePreviews(){
     1:S.isGround?"Наземна":(ROOF.find(r=>r.key===S.roofKey)?.label||""),
     2:`${S.kwInput} кВт ${S.powerMode.toUpperCase()}`,
     3:`${S.invType==="hybrid"?"Гібридний":"Мережевий"} · ${C.inv?.count||0}×${C.inv?.nominal||0} кВт`,
-    4:`${PANELS[S.panelIdx]?.label||""} · ${S.usdRate} грн/USD`,
+    4:`${(PANELS.find(p=>p.model===S.panelModel)||PANELS[0])?.label||""} · ${S.usdRate} грн/USD`,
   };
   Object.entries(p).forEach(([i,t])=>{const e=document.getElementById(`prev-${i}`);if(e)e.textContent=t;});
 }
@@ -921,6 +933,7 @@ function renderKP(){
       ?`<tr class="tr-g"><td colspan="8">1 · Капітальні витрати (CAPEX)</td></tr><tr class="tr-s"><td colspan="8">1.1 · Обладнання та матеріали</td></tr>`
       :isWork?`<tr class="tr-s"><td colspan="8">1.2 · Роботи</td></tr>`:"";
     const pw=`$${(r.sum/C.actKwDC).toFixed(1)}`;
+    if (S.hardwareNoVAT && (r.n==="1.1" || r.n==="1.2")) r.name += " <i>(Без ПДВ)</i>";
     return `${pre}<tr>
       <td style="color:#94A3B8">${r.n}</td>
       <td>${r.name}</td>
@@ -937,7 +950,7 @@ function renderKP(){
     ["Всього по проекту СЕС",C.sesTotal,"tr-tot"],
     ["Послуги генерального підряду 10%",C.genCost,"tr-dim"],
     ["Всього по проекту без ПДВ",C.sesNoVAT,"tr-tot"],
-    ["ПДВ 20%",C.sesVAT,"tr-dim"],
+    [(S.hardwareNoVAT?"ПДВ 20% (без обладнання)":"ПДВ 20%"),C.sesVAT,"tr-dim"],
     ["ВСЬОГО з ПДВ",C.sesWithVAT,"tr-acc"],
   ].map(([l,v,cls])=>`<tr class="${cls}">
     <td colspan="5" style="padding-left:16px">${l}</td>
@@ -1000,7 +1013,8 @@ function renderKP(){
       </table>
     </div>
 
-    ${S.notes?`<div class="kp-notes"><strong>Примітки:</strong> ${S.notes}</div>`:""}
+    ${S.notes?`<div class="kp-notes" style="margin-bottom:12px"><strong>Примітки:</strong> ${S.notes}</div>`:""}
+    ${S.hardwareNoVAT?`<div class="kp-notes"><strong>Увага:</strong> Вартість фотомодулів та інверторів вказана без урахування ПДВ (закупівля у нерезидента).</div>`:""}
 
     <div class="kp-footer">
       <p>* Дана КП є попередньою та призначена для ознайомлення Замовника з основними техніко-економічними показниками проекту СЕС на передбачуваній ділянці.</p>
@@ -1010,8 +1024,119 @@ function renderKP(){
     </div>`;
 }
 
-// ═══════ INIT ═══════
-buildUI();
+// ═══════ INIT APP ═══════
+const GIDS = { panels: "397532524", mounts: "134973451", gridInv: "457704901", hybridInv: "732265429", cable: "1236649776" };
+const B_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRLVRljrTAFt1BL9b7IBJBIxvHMc0PI2EAliBj1z6i2LkhjlnLSlqSHUNmJPIKLPHhYGdvkRUYmgxUb/pub?single=true&output=csv&gid=";
+
+function parseCSVLine(l){
+  let r=[],c="",q=false;
+  for(let i=0;i<l.length;i++){
+    const ch=l[i];
+    if(ch==='"'){if(q&&l[i+1]==='"'){c+='"';i++;}else q=!q;}
+    else if(ch===','&&!q){r.push(c);c="";}
+    else c+=ch;
+  }
+  r.push(c);return r;
+}
+
+function parsePrice(s){
+  if(!s)return 0;
+  const m=s.replace(',','.').match(/[\d.]+/);
+  return m?parseFloat(m[0]):0;
+}
+
+async function fetchCSV(g){
+  const res=await fetch(B_URL+g);
+  if(!res.ok)throw new Error("NetErr");
+  const t=await res.text();
+  return t.split('\n').map(l=>l.trim()).filter(Boolean).map(parseCSVLine);
+}
+
+async function initApp() {
+  try {
+    const [pCSV, mCSV, gCSV, hCSV, cCSV] = await Promise.all([
+      fetchCSV(GIDS.panels), fetchCSV(GIDS.mounts), fetchCSV(GIDS.gridInv), fetchCSV(GIDS.hybridInv), fetchCSV(GIDS.cable)
+    ]);
+    
+    PANELS=[];
+    for(const r of pCSV){
+      if(r.length>=5){
+        const model=r[0]?(r[0].trim()):"", desc=r[1]?(r[1].trim()):"", avail=r[2]?(r[2].trim()):"", priceStr=r[4];
+        if(model&&desc&&priceStr&&!model.includes("Модель")){
+           const price = parsePrice(priceStr);
+           const powMatch=desc.match(/(\d+)\s*(В|W|Вт)/i);
+           const pow=powMatch?parseInt(powMatch[1]):0;
+           if(pow>0 && price>0) PANELS.push({model, label:desc.split(' ').slice(0,6).join(' '), power:pow, price, avail});
+        }
+      }
+    }
+
+    const parseI = (csv, map) => {
+      for(const r of csv){
+        if(r.length>=5){
+          const model=r[0]?(r[0].trim()):"", desc=r[1]?(r[1].trim()):"", priceStr=r[4];
+          if(model&&priceStr&&!model.includes("Модель")){
+            const price = parsePrice(priceStr);
+            const kwMatch=model.match(/(\d+)K/i)||desc.match(/(\d+)\s*[kк][WВ]/i);
+            const nom=kwMatch?parseInt(kwMatch[1]):0;
+            if(nom>0 && price>0) map[nom]={model:model, price:price};
+          }
+        }
+      }
+    };
+    H_INV={}; G_INV={};
+    parseI(hCSV, H_INV); parseI(gCSV, G_INV);
+
+    for(const r of cCSV){ 
+      const desc=r[1]?(r[1].trim()):"", priceStr=r[4]; 
+      if(desc&&desc.includes("1*6")&&priceStr){ 
+        const p=parsePrice(priceStr); if(p>0) CABLE_P=p*1000; 
+      }
+    }
+
+    for(const r of mCSV){
+      const desc=r[1]?(r[1].trim()):"", priceStr=r[4];
+      if(desc&&priceStr){
+        const p=parsePrice(priceStr);
+        if(p>0){
+          if(desc.includes("Південь")) MOUNT.flat_south.price=p;
+          else if(desc.includes("Схід-Захід")) MOUNT.flat_ew.price=p;
+          else if(desc.includes("металопрофіль")) MOUNT.pitched.price=p;
+          else if(desc.includes("Наземна")) MOUNT.ground.price=p;
+        }
+      }
+    }
+
+    localStorage.setItem("skp_cache_v21", JSON.stringify({PANELS, H_INV, G_INV, MOUNT, CABLE_P}));
+  } catch(e) {
+    console.warn("Google Sheets error, using cache", e);
+    const cStr=localStorage.getItem("skp_cache_v21");
+    if(cStr){
+       try {
+         const c=JSON.parse(cStr);
+         if(c.PANELS&&c.PANELS.length)PANELS=c.PANELS; 
+         if(c.H_INV)H_INV=c.H_INV; 
+         if(c.G_INV)G_INV=c.G_INV;
+         if(c.MOUNT)MOUNT=c.MOUNT; 
+         if(c.CABLE_P)CABLE_P=c.CABLE_P;
+       } catch(ex){}
+    }
+  }
+
+  // Fallback defaults
+  if(PANELS.length===0) PANELS.push({model:"Unknown", label:"Дані не завантажено", power:500, price:0.15, avail:"-"});
+  if(Object.keys(H_INV).length===0) H_INV[10] = {model:"Unknown", price:1000};
+  if(Object.keys(G_INV).length===0) G_INV[10] = {model:"Unknown", price:800};
+
+  if(!S.panelModel && PANELS.length) S.panelModel=PANELS[0].model;
+  
+  const loaderEl = document.getElementById("loader"); 
+  if(loaderEl) loaderEl.style.display="none";
+  
+  buildUI();
+}
+
+window.addEventListener('DOMContentLoaded', initApp);
 </script>
 </body>
 </html>
