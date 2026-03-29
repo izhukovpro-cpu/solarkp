@@ -5,7 +5,8 @@
       "Bash(git clone:*)",
       "Read(//tmp/ui-ux-skill/.claude/**)",
       "Read(//tmp/ui-ux-skill/**)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(python3 \"C:/Users/gykov/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"solar energy B2B calculator commercial proposal tool\" --design-system -p \"SolarKP\" -f markdown)"
     ]
   }
 }

@@ -21,7 +21,7 @@
 }
 html{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--text);background:var(--bg);line-height:1.5}
 input,select,textarea,button{font-family:inherit}
-button{cursor:pointer}
+button{cursor:pointer;touch-action:manipulation}
 ::-webkit-scrollbar{width:5px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
 
@@ -128,7 +128,7 @@ textarea.inp{resize:vertical;min-height:76px;line-height:1.5}
 .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .type-card{
   padding:16px;border-radius:var(--r2);border:2px solid var(--border);
-  background:var(--bg3);cursor:pointer;text-align:left;transition:all .15s;
+  background:var(--bg3);cursor:pointer;text-align:left;transition:all .15s;touch-action:manipulation;
 }
 .type-card:hover{border-color:var(--sky-md);background:var(--sky-lt)}
 .type-card.act{border-color:var(--sky);background:var(--sky-lt);box-shadow:0 0 0 2px rgba(14,165,233,.1)}
@@ -141,7 +141,7 @@ textarea.inp{resize:vertical;min-height:76px;line-height:1.5}
 .radio-item{
   display:flex;align-items:center;justify-content:space-between;
   padding:11px 14px;border-radius:var(--r);border:1.5px solid var(--border);
-  background:var(--bg3);cursor:pointer;transition:all .15s;
+  background:var(--bg3);cursor:pointer;transition:all .15s;touch-action:manipulation;
 }
 .radio-item:hover{border-color:var(--sky-md);background:var(--sky-lt)}
 .radio-item.act{border-color:var(--sky);background:var(--sky-lt)}
@@ -159,7 +159,7 @@ textarea.inp{resize:vertical;min-height:76px;line-height:1.5}
 .chk-row{
   display:flex;align-items:flex-start;gap:12px;padding:13px 15px;
   border-radius:var(--r);border:1.5px solid var(--border);background:var(--bg3);
-  cursor:pointer;transition:all .15s;
+  cursor:pointer;transition:all .15s;touch-action:manipulation;
 }
 .chk-row:hover{border-color:var(--sky-md);background:var(--sky-lt)}
 .chk-row.chk{border-color:var(--sky);background:var(--sky-lt)}
@@ -191,7 +191,7 @@ textarea.inp{resize:vertical;min-height:76px;line-height:1.5}
 /* ── INV COUNT ── */
 .inv-count-wrap{display:flex;align-items:center;gap:10px;margin-top:8px}
 .icbtn{
-  width:38px;height:38px;border-radius:9px;border:1.5px solid var(--border2);
+  width:44px;height:44px;border-radius:9px;border:1.5px solid var(--border2);
   background:var(--bg3);color:var(--s2);font-size:20px;font-weight:700;
   display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;
 }
@@ -356,9 +356,33 @@ table.kt tr:last-child td{border-bottom:none}
 .result-panel::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 .step-header:hover { background: linear-gradient(to right, var(--sky-lt), #F0F9FF); }
 
-@media(max-width: 768px){
-  .btn-kp { position: sticky; bottom: 16px; z-index: 100; box-shadow: 0 10px 30px rgba(22,163,74,.4); }
-  .result-panel { max-height: none !important; overflow-y: visible !important; }
+/* ── FOCUS / ERROR / VALIDATION ── */
+.type-card:focus-visible,.radio-item:focus-visible,.chk-row:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.icbtn:focus-visible,.icauto:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.inp.error{border-color:#EF4444!important;box-shadow:0 0 0 3px rgba(239,68,68,.1)!important}
+.fld-err{font-size:12px;color:#EF4444;margin-top:5px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1099px){
+  .main{grid-template-columns:220px 1fr}
+  .result-panel{grid-column:1/-1;position:static;max-height:none;overflow-y:visible}
+}
+@media(max-width:767px){
+  .topbar{padding:0 16px;height:54px}
+  .main{grid-template-columns:1fr;padding:14px 12px;gap:14px}
+  .sidebar{position:static;height:auto}
+  .nav-card{display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .nav-step{flex-direction:column;align-items:center;gap:4px;padding:10px 8px;
+    min-width:68px;text-align:center;border-left:none;border-bottom:3px solid transparent}
+  .nav-step.active{border-left-color:transparent;border-bottom-color:var(--sky)}
+  .nav-step.done{border-left-color:transparent;border-bottom-color:var(--leaf)}
+  .step-lbl{font-size:10px;white-space:normal;line-height:1.2}
+  .step-num{width:26px;height:26px;font-size:10px}
+  .mini-card{display:none}
+  .result-panel{position:static;max-height:none;overflow-y:visible}
+  .btn-kp{position:sticky;bottom:16px;z-index:100;box-shadow:0 10px 30px rgba(22,163,74,.4)}
+  .res-header{padding:16px 18px}
+  .capex-wrap{padding:6px 14px 16px}
 }
 
 @page { size: A4 portrait; margin: 20mm; }
@@ -593,7 +617,7 @@ const STEPS=[
 function buildUI(){
   // nav
   document.getElementById("nav-steps").innerHTML=STEPS.map((st,i)=>`
-    <button class="nav-step${S.step===i?" active":""}${i<S.step?" done":""}" onclick="goStep(${i})">
+    <button class="nav-step${S.step===i?" active":""}${i<S.step?" done":""}" onclick="goStep(${i})" aria-current="${S.step===i?'step':'false'}">
       <div class="step-num">${i<S.step?"✓":String(i+1).padStart(2,"0")}</div>
       <span class="step-lbl">${st.label}</span>
     </button>`).join("");
@@ -620,6 +644,30 @@ function renderBody(i){
   if(!el)return;
   el.innerHTML=stepHTML(i);
   bindEvents(i);
+  applyARIA(i);
+}
+
+function applyARIA(i){
+  const body=document.getElementById(`body-${i}`);
+  if(!body)return;
+  body.querySelectorAll('.type-card').forEach(el=>{
+    el.setAttribute('role','radio');
+    el.setAttribute('aria-checked',el.classList.contains('act')?'true':'false');
+    el.setAttribute('tabindex','0');
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
+  });
+  body.querySelectorAll('.radio-item').forEach(el=>{
+    el.setAttribute('role','radio');
+    el.setAttribute('aria-checked',el.classList.contains('act')?'true':'false');
+    el.setAttribute('tabindex','0');
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
+  });
+  body.querySelectorAll('.chk-row').forEach(el=>{
+    el.setAttribute('role','checkbox');
+    el.setAttribute('aria-checked',el.classList.contains('chk')?'true':'false');
+    el.setAttribute('tabindex','0');
+    el.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();}});
+  });
 }
 
 function stepHTML(i){
@@ -676,7 +724,7 @@ function stepHTML(i){
       ${dcHint}
       <div class="step-nav">
         <button class="btn-prev" onclick="goStep(1)">← Назад</button>
-        <button class="btn-next" onclick="goStep(3)">Далі →</button>
+        <button class="btn-next" onclick="validateAndGoStep(3)">Далі →</button>
       </div>`;
   }
 
@@ -770,7 +818,11 @@ function bindEvents(i){
     on("in-notes","input",e=>{S.notes=e.target.value;save();});
   }
   if(i===2){
-    on("in-kw","input",e=>{S.kwInput=Math.max(1,+e.target.value||1);S.manualCount=null;calc();});
+    on("in-kw","input",e=>{
+      S.kwInput=Math.max(1,+e.target.value||1);S.manualCount=null;calc();
+      e.target.classList.remove("error");
+      const err=document.getElementById("kw-err");if(err)err.remove();
+    });
   }
   if(i===3){
     on("in-inv-nom","change",e=>{S.manualNom=e.target.value?+e.target.value:null;S.manualCount=null;calc();renderBody(3);});
@@ -783,6 +835,26 @@ function bindEvents(i){
 }
 
 // ═══════ ACTIONS ═══════
+function validateAndGoStep(to){
+  if(S.step===2){
+    const el=document.getElementById("in-kw");
+    if(el){
+      const v=parseFloat(el.value);
+      if(!v||v<=0){
+        el.classList.add("error");
+        if(!document.getElementById("kw-err")){
+          const d=document.createElement("div");
+          d.id="kw-err";d.className="fld-err";
+          d.textContent="Введіть потужність більше 0";
+          el.parentNode.appendChild(d);
+        }
+        el.focus();return;
+      }
+    }
+  }
+  goStep(to);
+}
+
 function goStep(n){
   saveInputs();
   S.step=n;save();
@@ -792,6 +864,7 @@ function goStep(n){
   });
   document.querySelectorAll(".nav-step").forEach((el,i)=>{
     el.className="nav-step"+(i===n?" active":i<n?" done":"");
+    el.setAttribute("aria-current",i===n?"step":"false");
     el.querySelector(".step-num").textContent=i<n?"✓":String(i+1).padStart(2,"0");
   });
   if(n===3)renderBody(3);
