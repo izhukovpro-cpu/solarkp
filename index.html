@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Construction · Калькулятор КП</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sun:#F59E0B; --sun-lt:#FEF3C7; --sun-md:#FCD34D;
+  --leaf:#16A34A; --leaf-lt:#DCFCE7; --leaf-md:#4ADE80;
+  --sky:#0EA5E9;  --sky-lt:#E0F2FE; --sky-md:#38BDF8;
+  --s2:#475569; --s3:#64748B; --s4:#94A3B8;
+  --border:#E2E8F0; --border2:#CBD5E1;
+  --bg:#F0F9FF; --bg2:#FFFFFF; --bg3:#F8FAFC;
+  --text:#0F172A;
+  --r:10px; --r2:14px; --r3:18px;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.05);
+  --sh2:0 4px 24px rgba(14,165,233,.12);
+}
+html{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;color:var(--text);background:var(--bg);line-height:1.5}
+input,select,textarea,button{font-family:inherit}
+button{cursor:pointer}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 28px;height:60px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:200;
+  box-shadow:0 1px 0 var(--border),0 2px 8px rgba(0,0,0,.04);
+}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{
+  width:36px;height:36px;border-radius:9px;
+  background:linear-gradient(135deg,var(--sun),#D97706);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  box-shadow:0 2px 8px rgba(245,158,11,.3);
+}
+.logo-name{font-size:15px;font-weight:800;letter-spacing:.3px}
+.logo-sub{font-size:11px;color:var(--s3);text-transform:uppercase;letter-spacing:.5px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.badge{
+  padding:4px 12px;border-radius:20px;
+  background:var(--leaf-lt);border:1px solid #BBF7D0;
+  font-size:12px;color:var(--leaf);font-weight:600;
+}
+.btn-reset{
+  padding:6px 16px;border-radius:8px;border:1px solid var(--border2);
+  background:transparent;color:var(--s2);font-size:13px;font-weight:500;
+  transition:all .15s;
+}
+.btn-reset:hover{background:var(--bg3)}
+
+/* ── MAIN GRID ── */
+.main{max-width:1320px;margin:0 auto;padding:28px 20px;display:grid;grid-template-columns:248px 1fr 460px;gap:24px}
+
+/* ── SIDEBAR ── */
+.sidebar{position:sticky;top:80px;height:fit-content;display:flex;flex-direction:column;gap:14px}
+.nav-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)}
+.nav-step{
+  display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border:none;background:transparent;width:100%;text-align:left;
+  border-left:3px solid transparent;transition:all .15s;cursor:pointer;
+}
+.nav-step:hover{background:var(--bg3)}
+.nav-step.active{background:var(--sky-lt);border-left-color:var(--sky)}
+.nav-step.done{border-left-color:var(--leaf)}
+.step-num{
+  width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;font-family:'DM Mono',monospace;
+  border:1.5px solid var(--border2);background:var(--bg3);color:var(--s3);
+  transition:all .15s;
+}
+.nav-step.active .step-num{background:var(--sky-lt);border-color:var(--sky);color:var(--sky)}
+.nav-step.done .step-num{background:var(--leaf-lt);border-color:var(--leaf-md);color:var(--leaf);font-size:14px}
+.step-lbl{font-size:14px;font-weight:500;color:var(--s2)}
+.nav-step.active .step-lbl{font-weight:700;color:var(--sky)}
+
+.mini-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:16px;box-shadow:var(--sh)}
+.mini-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--s4);margin-bottom:12px}
+.mini-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.mini-row:last-child{margin-bottom:0}
+.mini-key{font-size:13px;color:var(--s3)}
+.mini-val{font-size:15px;font-weight:700;color:var(--sky);font-family:'DM Mono',monospace}
+
+/* ── FORM ── */
+.form-area{display:flex;flex-direction:column;gap:6px}
+.step-card{
+  background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--r2);
+  overflow:hidden;box-shadow:var(--sh);transition:border-color .2s,box-shadow .2s;
+}
+.step-card.active{border-color:var(--sky-md);box-shadow:var(--sh2),0 0 0 3px rgba(14,165,233,.08)}
+.step-header{
+  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--border);cursor:pointer;
+  background:linear-gradient(to right,var(--bg3),var(--bg2));
+}
+.step-card.active .step-header{background:linear-gradient(to right,var(--sky-lt),var(--bg2))}
+.sh-left{display:flex;align-items:center;gap:10px}
+.sh-icon{font-size:17px}
+.sh-title{font-size:15px;font-weight:700;color:var(--text)}
+.step-card:not(.active) .sh-title{color:var(--s2)}
+.sh-prev{font-size:12px;color:var(--s3);font-family:'DM Mono',monospace;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step-body{padding:22px;animation:fadeIn .22s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.step-nav{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.btn-prev{padding:9px 20px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--s2);font-size:14px;font-weight:500;transition:all .15s}
+.btn-prev:hover{background:var(--bg3)}
+.btn-next{padding:9px 22px;border-radius:8px;border:none;background:var(--sky);color:#fff;font-size:14px;font-weight:700;transition:all .15s;box-shadow:0 2px 8px rgba(14,165,233,.25)}
+.btn-next:hover{background:#0284C7}
+
+/* ── CONTROLS ── */
+.fld{margin-bottom:16px}
+.fld:last-child{margin-bottom:0}
+.lbl{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--s3);margin-bottom:7px;display:block}
+.inp{
+  width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:var(--r);
+  background:var(--bg3);color:var(--text);font-size:15px;outline:none;
+  transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;appearance:none;
+}
+.inp:focus{border-color:var(--sky);box-shadow:0 0 0 3px rgba(14,165,233,.12);background:#fff}
+textarea.inp{resize:vertical;min-height:76px;line-height:1.5}
+
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.type-card{
+  padding:16px;border-radius:var(--r2);border:2px solid var(--border);
+  background:var(--bg3);cursor:pointer;text-align:left;transition:all .15s;
+}
+.type-card:hover{border-color:var(--sky-md);background:var(--sky-lt)}
+.type-card.act{border-color:var(--sky);background:var(--sky-lt);box-shadow:0 0 0 2px rgba(14,165,233,.1)}
+.tc-icon{font-size:24px;margin-bottom:8px}
+.tc-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px}
+.type-card.act .tc-title{color:var(--sky)}
+.tc-sub{font-size:12px;color:var(--s3)}
+
+.radio-list{display:flex;flex-direction:column;gap:7px}
+.radio-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px;border-radius:var(--r);border:1.5px solid var(--border);
+  background:var(--bg3);cursor:pointer;transition:all .15s;
+}
+.radio-item:hover{border-color:var(--sky-md);background:var(--sky-lt)}
+.radio-item.act{border-color:var(--sky);background:var(--sky-lt)}
+.rdot{
+  width:17px;height:17px;border-radius:50%;border:2px solid var(--border2);
+  flex-shrink:0;transition:all .15s;display:flex;align-items:center;justify-content:center;
+}
+.radio-item.act .rdot{border-color:var(--sky);background:var(--sky)}
+.rdot::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;opacity:0;transition:opacity .1s}
+.radio-item.act .rdot::after{opacity:1}
+.rlbl{font-size:14px;font-weight:500;color:var(--s2)}
+.radio-item.act .rlbl{color:var(--sky);font-weight:600}
+.rprice{font-size:13px;font-family:'DM Mono',monospace;color:var(--sun);font-weight:600}
+
+.chk-row{
+  display:flex;align-items:flex-start;gap:12px;padding:13px 15px;
+  border-radius:var(--r);border:1.5px solid var(--border);background:var(--bg3);
+  cursor:pointer;transition:all .15s;
+}
+.chk-row:hover{border-color:var(--sky-md);background:var(--sky-lt)}
+.chk-row.chk{border-color:var(--sky);background:var(--sky-lt)}
+.chkbox{
+  width:19px;height:19px;border-radius:5px;border:2px solid var(--border2);flex-shrink:0;
+  margin-top:2px;display:flex;align-items:center;justify-content:center;
+  background:#fff;transition:all .15s;
+}
+.chk-row.chk .chkbox{background:var(--sky);border-color:var(--sky)}
+.chkmark{display:none;color:#fff;font-size:11px;font-weight:900}
+.chk-row.chk .chkmark{display:block}
+.chk-title{font-size:14px;font-weight:600;color:var(--s2)}
+.chk-row.chk .chk-title{color:var(--sky)}
+.chk-sub{font-size:12px;color:var(--s3);margin-top:3px}
+
+.info-box{
+  padding:11px 15px;border-radius:var(--r);font-size:13px;
+  display:flex;align-items:flex-start;gap:8px;margin-top:10px;
+}
+.info-sky{background:var(--sky-lt);border:1px solid #BAE6FD;color:#0369A1}
+.info-sun{background:var(--sun-lt);border:1px solid #FDE68A;color:#92400E}
+.info-leaf{background:var(--leaf-lt);border:1px solid #BBF7D0;color:#15803D}
+
+.panel-info{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.pi-item{padding:10px 12px;border-radius:8px;background:var(--bg3);border:1px solid var(--border)}
+.pi-key{font-size:11px;color:var(--s4);text-transform:uppercase;letter-spacing:.5px}
+.pi-val{font-size:15px;font-weight:700;color:var(--sky);font-family:'DM Mono',monospace;margin-top:3px}
+
+/* ── INV COUNT ── */
+.inv-count-wrap{display:flex;align-items:center;gap:10px;margin-top:8px}
+.icbtn{
+  width:38px;height:38px;border-radius:9px;border:1.5px solid var(--border2);
+  background:var(--bg3);color:var(--s2);font-size:20px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;
+}
+.icbtn:hover{border-color:var(--sky);color:var(--sky);background:var(--sky-lt)}
+.icval{
+  flex:1;text-align:center;font-size:22px;font-weight:800;
+  color:var(--text);font-family:'DM Mono',monospace;padding:6px;
+  border:1.5px solid var(--border);border-radius:8px;background:var(--bg3);
+}
+.icauto{
+  font-size:12px;color:var(--leaf);font-weight:700;cursor:pointer;
+  padding:5px 12px;border-radius:7px;border:1px solid var(--leaf-md);
+  background:var(--leaf-lt);flex-shrink:0;
+}
+.ac-total{
+  margin-top:10px;padding:12px 16px;border-radius:var(--r);
+  background:linear-gradient(135deg,var(--sun-lt),#FFF7ED);border:1px solid #FDE68A;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.ac-total-lbl{font-size:13px;color:#92400E}
+.ac-total-val{font-size:18px;font-weight:800;color:var(--sun);font-family:'DM Mono',monospace}
+
+/* ── RIGHT PANEL ── */
+.result-panel{position:sticky;top:80px;height:fit-content;display:flex;flex-direction:column;gap:16px}
+.res-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh)}
+.res-header{
+  padding:20px 22px;
+  background:linear-gradient(135deg,#F0F9FF,#E0F2FE);
+  border-bottom:1px solid var(--border);
+}
+.res-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--s3);margin-bottom:6px}
+.res-kw{font-size:38px;font-weight:800;color:var(--sky);font-family:'DM Mono',monospace;line-height:1}
+.res-kw span{font-size:16px;font-weight:500;color:var(--s3)}
+.res-sub{font-size:13px;color:var(--s3);margin-top:6px}
+
+.equip-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:16px 18px}
+.eq-item{padding:13px 14px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--border)}
+.eq-lbl{font-size:11px;color:var(--s4);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px}
+.eq-val{font-size:15px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace}
+.eq-sub{font-size:11px;color:var(--s3);margin-top:3px}
+.eq-model{font-size:10px;color:var(--s4);margin-top:3px;font-style:italic;line-height:1.3;word-break:break-all}
+
+.capex-wrap{padding:6px 20px 20px}
+.capex-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--s4);margin-bottom:12px;margin-top:6px}
+.capex-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:7px}
+.capex-lbl{font-size:13px;color:var(--s2);max-width:220px;line-height:1.3}
+.capex-lbl.muted{color:var(--s4);text-decoration:line-through}
+.capex-val{font-size:13px;font-family:'DM Mono',monospace;font-weight:600;color:var(--text);flex-shrink:0}
+.capex-val.muted{color:var(--s4)}
+.capex-div{height:1px;background:var(--border);margin:10px 0}
+.tot-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.tot-lbl{font-size:13px;color:var(--s2)}
+.tot-lbl.dim{color:var(--s4);font-size:12px}
+.tot-val{font-size:13px;font-family:'DM Mono',monospace;font-weight:600;color:var(--text)}
+.tot-val.dim{color:var(--s4);font-weight:400}
+.tot-val.bold{font-size:14px;font-weight:800}
+.total-box{
+  margin:14px 0 0;padding:18px 20px;border-radius:var(--r2);
+  background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;
+}
+.total-lbl{font-size:12px;letter-spacing:1px;text-transform:uppercase;opacity:.8;margin-bottom:6px}
+.total-usd{font-size:32px;font-weight:800;font-family:'DM Mono',monospace;line-height:1.1}
+.total-uah{font-size:14px;opacity:.75;margin-top:4px}
+.total-kw{display:flex;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.2)}
+.total-kw span{font-size:12px;opacity:.8}
+.total-kw strong{font-family:'DM Mono',monospace;font-size:15px}
+
+.btn-copy{
+  width:100%;padding:13px;border-radius:var(--r2);
+  border:1.5px solid var(--border);background:var(--bg2);
+  color:var(--s2);font-size:14px;font-weight:600;transition:all .2s;
+}
+.btn-copy:hover,.btn-copy.copied{background:var(--leaf-lt);border-color:var(--leaf);color:var(--leaf)}
+.btn-kp{
+  width:100%;padding:16px;border-radius:var(--r2);border:none;
+  background:linear-gradient(135deg,var(--leaf),#15803D);
+  color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px;
+  box-shadow:0 4px 16px rgba(22,163,74,.3);transition:all .2s;
+}
+.btn-kp:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(22,163,74,.4)}
+
+/* ── KP PAGE ── */
+#kp-page{display:none;min-height:100vh;background:#F1F5F9}
+.kp-toolbar{
+  background:#fff;border-bottom:1px solid var(--border);padding:12px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+}
+.btn-back{
+  display:flex;align-items:center;gap:6px;padding:9px 18px;
+  border-radius:8px;border:1px solid var(--border2);background:#fff;
+  color:var(--s2);font-size:14px;font-weight:500;
+}
+.btn-back:hover{background:var(--bg3)}
+.btn-print{
+  padding:9px 22px;border-radius:8px;border:none;
+  background:var(--sky);color:#fff;font-size:14px;font-weight:700;
+}
+.btn-print:hover{background:#0284C7}
+.kp-doc{max-width:900px;margin:0 auto;padding:36px 20px 80px}
+
+.kp-banner{
+  background:linear-gradient(135deg,#0EA5E9 0%,#16A34A 100%);
+  border-radius:var(--r3);padding:26px 32px;margin-bottom:24px;
+  color:#fff;display:flex;justify-content:space-between;align-items:center;
+}
+.kp-bn{font-size:21px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+.kp-bs{font-size:12px;opacity:.8;margin-top:4px}
+.kp-br{text-align:right}
+.kp-brl{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:1px}
+.kp-brd{font-family:'DM Mono',monospace;font-size:13px;margin-top:4px}
+
+.kp-title-block{
+  background:#fff;border-radius:var(--r2);padding:26px 30px;
+  margin-bottom:22px;border:1px solid var(--border);box-shadow:var(--sh);
+}
+.kp-proj-lbl{font-size:11px;color:var(--s3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.kp-proj-name{font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px}
+.kp-proj-desc{font-size:13px;color:var(--s2);line-height:1.7}
+.kp-meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.kp-meta-item{padding:8px 14px;border-radius:9px;background:var(--bg3);border:1px solid var(--border)}
+.kp-mk{font-size:10px;color:var(--s4);text-transform:uppercase;letter-spacing:.5px}
+.kp-mv{font-size:14px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
+
+.kp-tbl-wrap{background:#fff;border-radius:var(--r2);overflow:hidden;border:1px solid var(--border);margin-bottom:22px;box-shadow:var(--sh)}
+.kp-tbl-hdr{padding:14px 22px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.kp-tbl-title{font-size:14px;font-weight:800;color:var(--text)}
+.kp-tbl-sub{font-size:12px;color:var(--s3)}
+table.kt{width:100%;border-collapse:collapse;font-size:12px}
+table.kt th{padding:9px 10px;text-align:left;font-size:10px;font-weight:700;color:var(--s3);text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);background:var(--bg3)}
+table.kt th.r{text-align:right}
+table.kt td{padding:9px 10px;border-bottom:1px solid #F8FAFC;color:var(--s2);vertical-align:middle}
+table.kt td.r{text-align:right;font-family:'DM Mono',monospace}
+table.kt tr:last-child td{border-bottom:none}
+.tr-g td{background:#F0F9FF;font-size:11px;font-weight:800;color:#0284C7;text-transform:uppercase;letter-spacing:.4px;padding:7px 10px}
+.tr-s td{background:var(--bg3);font-size:11px;color:var(--s3);font-style:italic;padding:6px 10px 6px 20px}
+.tr-tot td{background:var(--bg3);font-weight:700;color:var(--text)}
+.tr-dim td{background:var(--bg3);color:var(--s3);font-size:11px}
+.tr-acc td{background:linear-gradient(135deg,#0EA5E9,#0284C7);color:#fff;font-weight:800}
+.tr-kw td{background:#FFFBEB;color:#92400E;font-size:11px;font-style:italic}
+
+.kp-notes{background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--r);padding:14px 18px;margin-bottom:20px;font-size:13px;color:#78350F}
+.kp-footer{background:#fff;border-radius:var(--r2);padding:24px 28px;border:1px solid var(--border);font-size:12px;color:var(--s3);line-height:1.8}
+.kp-footer p{margin-bottom:6px}
+.kp-sign{margin-top:18px;color:var(--s2);font-size:14px;font-weight:600;line-height:1.8}
+.kp-sign small{font-weight:400;color:var(--s3)}
+
+@media print{
+  .topbar,.kp-toolbar{display:none}
+  #calc-page{display:none!important}
+  #kp-page{display:block!important;background:#fff}
+  .kp-doc{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ CALC PAGE ═══════════ -->
+<div id="calc-page">
+<header class="topbar">
+  <div class="logo">
+    <div class="logo-icon">☀️</div>
+    <div>
+      <div class="logo-name">Power Construction LLC.</div>
+      <div class="logo-sub">Solar EPC · Калькулятор КП</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="badge">🌿 Прайс Берез. 2025</span>
+    <button class="btn-reset" onclick="resetForm()">Скинути</button>
+  </div>
+</header>
+
+<div class="main">
+  <!-- sidebar -->
+  <aside class="sidebar">
+    <div class="nav-card" id="nav-steps"></div>
+    <div class="mini-card">
+      <div class="mini-title">Поточний розрахунок</div>
+      <div class="mini-row"><span class="mini-key">DC потужність</span><span class="mini-val" id="m-dc">—</span></div>
+      <div class="mini-row"><span class="mini-key">AC інвертори</span><span class="mini-val" id="m-ac">—</span></div>
+      <div class="mini-row"><span class="mini-key">Панелей</span><span class="mini-val" id="m-panels">—</span></div>
+      <div class="mini-row"><span class="mini-key">Інверторів</span><span class="mini-val" id="m-inv">—</span></div>
+    </div>
+  </aside>
+
+  <!-- form -->
+  <div class="form-area" id="form-steps"></div>
+
+  <!-- right panel -->
+  <aside class="result-panel">
+    <div class="res-card">
+      <div class="res-header">
+        <div class="res-label">Підібране обладнання</div>
+        <div class="res-kw" id="r-kw">— <span>кВт DC</span></div>
+        <div class="res-sub" id="r-sub">Введіть параметри</div>
+      </div>
+      <div class="equip-grid" id="equip-grid"></div>
+      <div class="capex-wrap">
+        <div class="capex-title">Розбивка CAPEX</div>
+        <div id="capex-rows"></div>
+        <div class="capex-div"></div>
+        <div id="tot-rows"></div>
+        <div class="total-box">
+          <div class="total-lbl">Всього з ПДВ</div>
+          <div class="total-usd" id="total-usd">—</div>
+          <div class="total-uah" id="total-uah">—</div>
+          <div class="total-kw">
+            <span>Ціна за кВт (без ПДВ)</span>
+            <strong id="price-kw">—</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-copy" id="btn-copy" onclick="copyResult()">📋 Копіювати підсумок</button>
+    <button class="btn-kp" onclick="showKP()">📄 Сформувати комерційну пропозицію →</button>
+  </aside>
+</div>
+</div>
+
+<!-- ═══════════ KP PAGE ═══════════ -->
+<div id="kp-page">
+  <div class="kp-toolbar">
+    <button class="btn-back" onclick="showCalc()">← Повернутись</button>
+    <button class="btn-print" onclick="window.print()">🖨️ Друк / PDF</button>
+  </div>
+  <div class="kp-doc" id="kp-doc"></div>
+</div>
+
+<script>
+// ═══════ ПРАЙС ═══════
+const PANELS=[
+  {model:"LR5-54HTD-430M", label:"Longi Solar 430 Вт BF",            power:430,price:0.120,avail:"в наявності"},
+  {model:"LR8-48HGD-440M", label:"Longi Solar 440 Вт BF чорна рама", power:440,price:0.180,avail:"в резерві"},
+  {model:"JKM435N-54HL4-B",label:"Jinko Solar 435 Вт",                power:435,price:0.165,avail:"в наявності"},
+  {model:"LR8-48HGD-445M", label:"Longi Solar 445 Вт BF чорна рама", power:445,price:0.180,avail:"в наявності"},
+  {model:"LR5-72HTH-585M", label:"Longi Solar 585 Вт",                power:585,price:0.130,avail:"в наявності"},
+  {model:"LR5-72HGD-580M", label:"Longi Solar 580 Вт",                power:580,price:0.120,avail:"в дорозі"},
+  {model:"LR8-66HGD-615M", label:"Longi Solar 615 Вт BF",             power:615,price:0.150,avail:"в резерві"},
+  {model:"LR8-66HGD-620M", label:"Longi Solar 620 Вт BF",             power:620,price:0.160,avail:"в резерві"},
+  {model:"LR7-72HVH-645M", label:"Longi Solar 645 Вт",                power:645,price:0.135,avail:"в наявності"},
+  {model:"TWMNH-54HD500W", label:"TONGWEI 500 Вт BF Topcon N-Type",   power:500,price:0.125,avail:"в резерві"},
+  {model:"TWMND-78HD635W", label:"TONGWEI 635 Вт BF Topcon N-Type",   power:635,price:0.125,avail:"в наявності"},
+  {model:"TWMNH-66HD620W", label:"TONGWEI 620 Вт BF Topcon N-Type",   power:620,price:0.175,avail:"в наявності"},
+  {model:"TWMND-72HD590W", label:"TONGWEI 590 Вт BF Topcon N-Type",   power:590,price:0.175,avail:"в наявності"},
+  {model:"TWMNH-66HD635W", label:"TONGWEI 635 Вт",                    power:635,price:0.165,avail:"в дорозі"},
+];
+const H_INV={
+  50:{model:"SUN-50K-SG01HP3-EU-BM4",price:4200},
+  60:{model:"SUN-60K-SG02HP3-EU-EM6",price:5475},
+  75:{model:"SUN-75K-SG02HP3-EU-EM6",price:5750},
+  80:{model:"SUN-80K-SG02HP3-EU-EM6",price:5950},
+  100:{model:"SUN-100K-HV (запит)",price:8200},
+  125:{model:"SUN-125K-HV (запит)",price:9500},
+};
+const G_INV={
+  10:{model:"SUN-10K-G06P3-EU-AM2-P1",price:470},
+  15:{model:"SUN-15K-G06P3-EU-AM2-P1",price:660},
+  20:{model:"SUN-20K-G05",price:705},
+  25:{model:"SUN-25K-G05",price:760},
+  30:{model:"SUN-30K-G04",price:930},
+  35:{model:"SUN-35K-G04",price:1090},
+  50:{model:"SUN-50K-G04",price:1430},
+  60:{model:"SUN-60K-G04P3-EU-AM4",price:1835},
+  80:{model:"SUN-80K-G04P3-EU-AM4",price:2060},
+  100:{model:"SUN-100K-G03",price:2400},
+  110:{model:"SUN-110K-G03",price:2600},
+  120:{model:"SUN-120K-G01P3-EU",price:2970},
+  125:{model:"SUN-125K-G01P3-EU",price:3100},
+  130:{model:"SUN-130K-G01P3-EU-AM8",price:3340},
+};
+const MOUNT={
+  flat_south:{label:"Баластна Південь",price:25.50},
+  flat_ew:{label:"Баластна Схід-Захід",price:27.00},
+  pitched:{label:"Під металопрофіль",price:18.50},
+  ground:{label:"Наземна оцинкована",price:32.25},
+};
+const ROOF=[
+  {key:"flat_south",label:"Плоский дах — Південь",orient:"south"},
+  {key:"flat_ew",label:"Плоский дах — Схід-Захід",orient:"ew"},
+  {key:"pitched",label:"Скатна покрівля",orient:"south"},
+];
+const DC_AC={south:1.3,ew:1.6};
+const STR=17, CABLE_K=1.5, CABLE_P=1009, AC_KW=35, GEN=0.10, VAT=0.20, KP_DAYS=10;
+const STORE="solar_kp_v10";
+
+// ═══════ STATE ═══════
+const DEF={
+  clientName:"",address:"",notes:"",
+  isGround:false,roofKey:"flat_south",
+  powerMode:"dc",kwInput:400,
+  invType:"hybrid",manualNom:null,manualCount:null,invWithUZE:false,
+  panelIdx:0,usdRate:44.5,
+  step:0,
+};
+let S={...DEF};
+try{const v=localStorage.getItem(STORE);if(v)S={...DEF,...JSON.parse(v)};}catch{}
+function save(){try{localStorage.setItem(STORE,JSON.stringify(S));}catch{}}
+function resetForm(){S={...DEF};save();buildUI();}
+
+// ═══════ CALC ═══════
+const f2=n=>n.toLocaleString("uk-UA",{minimumFractionDigits:2,maximumFractionDigits:2});
+const usd=n=>`$${f2(n)}`;
+const uah=(n,r)=>`${Math.round(n*r).toLocaleString("uk-UA")} грн`;
+function kpDate(){const d=new Date();d.setDate(d.getDate()+KP_DAYS);return d.toLocaleDateString("uk-UA");}
+
+function getWR(kw,ig){
+  if(ig)return kw<500?65:55;
+  if(kw<=100)return 65;if(kw<=500)return 55;return 50;
+}
+function nPanels(kwDC,pwr,ig){
+  const raw=(kwDC*1000)/pwr;
+  let n=Math.ceil(raw/STR)*STR;
+  if(ig){if((n/STR)%2!==0)n+=STR;}
+  else{if(n%2!==0)n+=STR;}
+  return n;
+}
+function pickInv(acKw,maxNom,invMap){
+  const line=Object.keys(invMap).map(Number).sort((a,b)=>a-b);
+  const allowed=line.filter(n=>n<=maxNom);
+  if(!allowed.length)return{nominal:0,count:0,totalAC:0,model:"—",price:0};
+  const nom=allowed[allowed.length-1];
+  const cnt=Math.floor(acKw/nom);
+  return{nominal:nom,count:cnt,totalAC:cnt*nom,...invMap[nom]};
+}
+
+let C={};
+function calcCapex(){
+  const panel=PANELS[S.panelIdx];
+  const orient=S.isGround?"south":(ROOF.find(r=>r.key===S.roofKey)?.orient||"south");
+  const mkey=S.isGround?"ground":S.roofKey;
+  const mount=MOUNT[mkey];
+  const kwDC=S.powerMode==="ac"?S.kwInput*DC_AC[orient]:S.kwInput;
+  const np=nPanels(kwDC,panel.power,S.isGround);
+  const actKwDC=parseFloat(((np*panel.power)/1000).toFixed(2));
+  const pUSD=panel.price*panel.power;
+  const acKw=actKwDC/DC_AC[orient];
+  const invMap=S.invType==="hybrid"?H_INV:G_INV;
+  const maxNom=S.invType==="hybrid"?(actKwDC<500?75:100):130;
+
+  let inv;
+  if(S.manualNom&&invMap[S.manualNom]){
+    const nom=S.manualNom;
+    const autoCnt=Math.floor(acKw/nom);
+    const cnt=S.manualCount!==null?S.manualCount:autoCnt;
+    inv={nominal:nom,count:cnt,totalAC:cnt*nom,...invMap[nom]};
+  } else {
+    const ai=pickInv(acKw,maxNom,invMap);
+    const cnt=S.manualCount!==null?S.manualCount:ai.count;
+    inv={...ai,count:cnt,totalAC:cnt*ai.nominal};
+  }
+
+  const cableKm=parseFloat(((actKwDC/100)*CABLE_K).toFixed(2));
+  const workRate=getWR(actKwDC,S.isGround);
+  const panelCost=np*pUSD;
+  const invCost=S.invWithUZE?0:inv.count*inv.price;
+  const mountCost=np*mount.price;
+  const cableCost=cableKm*CABLE_P;
+  const acNetCost=S.invWithUZE?0:actKwDC*AC_KW;
+  const workCost=actKwDC*workRate;
+  const sesTotal=panelCost+invCost+mountCost+cableCost+acNetCost+workCost;
+  const genCost=sesTotal*GEN;
+  const sesNoVAT=sesTotal+genCost;
+  const sesVAT=sesNoVAT*VAT;
+  const sesWithVAT=sesNoVAT+sesVAT;
+
+  C={
+    orient,mount,panel,pUSD,inv,
+    np,strings:np/STR,actKwDC,kwDC,
+    acNeeded:acKw.toFixed(1),acActual:inv.totalAC,
+    cableKm,workRate,
+    panelCost,invCost,mountCost,cableCost,acNetCost,workCost,
+    sesTotal,genCost,sesNoVAT,sesVAT,sesWithVAT,
+    pricePerKw:sesNoVAT/actKwDC,
+    invTotalAC:inv.totalAC,
+  };
+}
+
+function calc(){
+  calcCapex();
+  updateRight();
+  updateMini();
+  updatePreviews();
+  updateInvDisp();
+  save();
+}
+
+// ═══════ BUILD UI ═══════
+const STEPS=[
+  {icon:"👤",label:"Клієнт та об'єкт"},
+  {icon:"🏗️",label:"Тип СЕС"},
+  {icon:"⚡",label:"Потужність"},
+  {icon:"🔌",label:"Інвертор"},
+  {icon:"☀️",label:"Панелі та курс"},
+];
+
+function buildUI(){
+  // nav
+  document.getElementById("nav-steps").innerHTML=STEPS.map((st,i)=>`
+    <button class="nav-step${S.step===i?" active":""}${i<S.step?" done":""}" onclick="goStep(${i})">
+      <div class="step-num">${i<S.step?"✓":String(i+1).padStart(2,"0")}</div>
+      <span class="step-lbl">${st.label}</span>
+    </button>`).join("");
+
+  // form cards
+  document.getElementById("form-steps").innerHTML=STEPS.map((st,i)=>`
+    <div class="step-card${S.step===i?" active":""}" id="sc-${i}">
+      <div class="step-header" onclick="goStep(${i})">
+        <div class="sh-left">
+          <span class="sh-icon">${st.icon}</span>
+          <span class="sh-title">${st.label}</span>
+        </div>
+        <span class="sh-prev" id="prev-${i}"></span>
+      </div>
+      <div class="step-body" id="body-${i}" style="display:${S.step===i?"block":"none"}"></div>
+    </div>`).join("");
+
+  STEPS.forEach((_,i)=>renderBody(i));
+  calc();
+}
+
+function renderBody(i){
+  const el=document.getElementById(`body-${i}`);
+  if(!el)return;
+  el.innerHTML=stepHTML(i);
+  bindEvents(i);
+}
+
+function stepHTML(i){
+  if(i===0) return `
+    <div class="fld"><label class="lbl">Назва клієнта / об'єкту</label>
+      <input class="inp" id="in-client" value="${esc(S.clientName)}" placeholder="ТОВ «Ромашка» / АЗС UPG"></div>
+    <div class="fld"><label class="lbl">Адреса об'єкту</label>
+      <input class="inp" id="in-addr" value="${esc(S.address)}" placeholder="м. Київ, вул. Хрещатик, 1"></div>
+    <div class="fld"><label class="lbl">Примітки до КП</label>
+      <textarea class="inp" id="in-notes" placeholder="Особливі умови, побажання клієнта...">${esc(S.notes)}</textarea></div>
+    <div class="step-nav"><button class="btn-next" onclick="goStep(1)">Далі →</button></div>`;
+
+  if(i===1){
+    const rHTML=ROOF.map(rt=>`
+      <div class="radio-item${S.roofKey===rt.key?" act":""}" onclick="setRoof('${rt.key}')">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="rdot"></div><span class="rlbl">${rt.label}</span>
+        </div>
+        <span class="rprice">$${MOUNT[rt.key].price}/шт</span>
+      </div>`).join("");
+    return `
+      <div class="type-grid">
+        <div class="type-card${!S.isGround?" act":""}" onclick="setGround(false)">
+          <div class="tc-icon">🏠</div><div class="tc-title">Дахова</div><div class="tc-sub">Монтаж на покрівлі</div>
+        </div>
+        <div class="type-card${S.isGround?" act":""}" onclick="setGround(true)">
+          <div class="tc-icon">🌿</div><div class="tc-title">Наземна</div><div class="tc-sub">Відкрита площадка</div>
+        </div>
+      </div>
+      ${!S.isGround
+        ?`<div class="fld"><label class="lbl">Тип покрівлі</label><div class="radio-list">${rHTML}</div></div>`
+        :`<div class="info-box info-leaf">🏗️ Оцинкована конструкція · <strong>$${MOUNT.ground.price}/шт</strong> · парна кількість стрінгів</div>`}
+      <div class="step-nav">
+        <button class="btn-prev" onclick="goStep(0)">← Назад</button>
+        <button class="btn-next" onclick="goStep(2)">Далі →</button>
+      </div>`;
+  }
+
+  if(i===2){
+    const dcHint=S.powerMode==="ac"
+      ?`<div class="info-box info-sky">DC = ${S.kwInput} × ${DC_AC[C.orient||"south"]} = <strong>${(S.kwInput*DC_AC[C.orient||"south"]).toFixed(1)} кВт DC</strong></div>`:"";
+    return `
+      <div class="type-grid">
+        <div class="type-card${S.powerMode==="dc"?" act":""}" onclick="setPM('dc')">
+          <div class="tc-icon">⚡</div><div class="tc-title">По панелях</div><div class="tc-sub">Вводимо кВт DC</div>
+        </div>
+        <div class="type-card${S.powerMode==="ac"?" act":""}" onclick="setPM('ac')">
+          <div class="tc-icon">🔌</div><div class="tc-title">По вводу AC</div><div class="tc-sub">Потужність підключення</div>
+        </div>
+      </div>
+      <div class="fld"><label class="lbl">${S.powerMode==="dc"?"Потужність панелей, кВт DC":"Потужність вводу AC, кВт"}</label>
+        <input class="inp" type="number" id="in-kw" value="${S.kwInput}" min="1">
+      </div>
+      ${dcHint}
+      <div class="step-nav">
+        <button class="btn-prev" onclick="goStep(1)">← Назад</button>
+        <button class="btn-next" onclick="goStep(3)">Далі →</button>
+      </div>`;
+  }
+
+  if(i===3){
+    const imap=S.invType==="hybrid"?H_INV:G_INV;
+    const opts=Object.keys(imap).map(n=>`<option value="${n}"${S.manualNom==n?" selected":""}>${n} кВт · ${imap[n].model} · $${imap[n].price.toLocaleString()}</option>`).join("");
+    const disp=S.manualCount!==null?S.manualCount:(C.inv?.count||0);
+    return `
+      <div class="type-grid">
+        <div class="type-card${S.invType==="hybrid"?" act":""}" onclick="setInvType('hybrid')">
+          <div class="tc-icon">🔋</div><div class="tc-title">Гібридний</div><div class="tc-sub">DEYE HV</div>
+        </div>
+        <div class="type-card${S.invType==="grid"?" act":""}" onclick="setInvType('grid')">
+          <div class="tc-icon">📡</div><div class="tc-title">Мережевий</div><div class="tc-sub">DEYE Grid</div>
+        </div>
+      </div>
+      <div class="fld"><label class="lbl">Потужність одного інвертора</label>
+        <select class="inp" id="in-inv-nom">
+          <option value="">⚡ Авто (підібрати)</option>${opts}
+        </select>
+      </div>
+      <div class="fld">
+        <label class="lbl">Кількість інверторів</label>
+        <div class="inv-count-wrap">
+          <button class="icbtn" onclick="chgInv(-1)">−</button>
+          <input class="icval" type="number" id="in-inv-cnt" value="${disp}" min="1" max="50" oninput="setInvCnt(parseInt(this.value)||1)">
+          <button class="icbtn" onclick="chgInv(1)">+</button>
+          <button class="icauto" onclick="resetInv()">Авто</button>
+        </div>
+        <div class="ac-total" style="margin-top:10px">
+          <span class="ac-total-lbl">Сумарна потужність AC</span>
+          <span class="ac-total-val" id="ac-total-disp">${C.inv?.totalAC||0} кВт</span>
+        </div>
+      </div>
+      <div class="fld" onclick="toggleWithUZE()">
+        <div class="chk-row${S.invWithUZE?" chk":""}">
+          <div class="chkbox"><span class="chkmark">✓</span></div>
+          <div>
+            <div class="chk-title">Інвертор постачається разом з накопичувачем</div>
+            <div class="chk-sub">Не включати вартість інвертора та мереж AC до КП</div>
+          </div>
+        </div>
+      </div>
+      ${S.invWithUZE?`<div class="info-box info-sun">⚠️ Інвертор та мережі AC виключені з розрахунку</div>`:""}
+      <div class="step-nav">
+        <button class="btn-prev" onclick="goStep(2)">← Назад</button>
+        <button class="btn-next" onclick="goStep(4)">Далі →</button>
+      </div>`;
+  }
+
+  if(i===4){
+    const p=PANELS[S.panelIdx];
+    const opts=PANELS.map((pl,idx)=>`<option value="${idx}"${S.panelIdx==idx?" selected":""}>${pl.label} · $${(pl.price*pl.power).toFixed(2)}/шт [${pl.avail}]</option>`).join("");
+    return `
+      <div class="fld"><label class="lbl">Модель панелі · ${PANELS.length} позицій</label>
+        <select class="inp" id="in-panel">${opts}</select>
+        <div class="panel-info">
+          <div class="pi-item"><div class="pi-key">Потужність</div><div class="pi-val">${p.power} Вт</div></div>
+          <div class="pi-item"><div class="pi-key">Ціна/шт</div><div class="pi-val">$${(p.price*p.power).toFixed(2)}</div></div>
+          <div class="pi-item"><div class="pi-key">Наявність</div><div class="pi-val" style="font-size:12px;color:var(--leaf)">${p.avail}</div></div>
+        </div>
+      </div>
+      <div class="fld"><label class="lbl">Курс USD / грн</label>
+        <input class="inp" type="number" id="in-rate" value="${S.usdRate}" step="0.5">
+      </div>
+      <div class="step-nav">
+        <button class="btn-prev" onclick="goStep(3)">← Назад</button>
+      </div>`;
+  }
+  return "";
+}
+
+function esc(s){return String(s||"").replace(/"/g,"&quot;").replace(/[<]/g,"&lt;");}
+
+function bindEvents(i){
+  const $ =id=>document.getElementById(id);
+  const on=(id,ev,fn)=>{const e=$(id);if(e)e.addEventListener(ev,fn);};
+  if(i===0){
+    on("in-client","input",e=>{S.clientName=e.target.value;save();updatePreviews();});
+    on("in-addr","input",e=>{S.address=e.target.value;save();updatePreviews();});
+    on("in-notes","input",e=>{S.notes=e.target.value;save();});
+  }
+  if(i===2){
+    on("in-kw","input",e=>{S.kwInput=Math.max(1,+e.target.value||1);S.manualCount=null;calc();renderBody(2);});
+  }
+  if(i===3){
+    on("in-inv-nom","change",e=>{S.manualNom=e.target.value?+e.target.value:null;S.manualCount=null;calc();renderBody(3);});
+    on("in-inv-cnt","input",e=>{const v=parseInt(e.target.value);if(v>0){S.manualCount=v;calc();updateInvDisp();}});
+  }
+  if(i===4){
+    on("in-panel","change",e=>{S.panelIdx=+e.target.value;S.manualCount=null;calc();renderBody(4);});
+    on("in-rate","input",e=>{S.usdRate=Math.max(1,+e.target.value||1);calc();});
+  }
+}
+
+// ═══════ ACTIONS ═══════
+function goStep(n){
+  saveInputs();
+  S.step=n;save();
+  document.querySelectorAll(".step-card").forEach((el,i)=>{
+    el.classList.toggle("active",i===n);
+    document.getElementById(`body-${i}`).style.display=i===n?"block":"none";
+  });
+  document.querySelectorAll(".nav-step").forEach((el,i)=>{
+    el.className="nav-step"+(i===n?" active":i<n?" done":"");
+    el.querySelector(".step-num").textContent=i<n?"✓":String(i+1).padStart(2,"0");
+  });
+  if(n===3)renderBody(3);
+  if(n===4)renderBody(4);
+}
+
+function saveInputs(){
+  const $=id=>document.getElementById(id);
+  const v=id=>{const e=$(id);return e?e.value:null;};
+  if(v("in-client")!==null){S.clientName=v("in-client")||"";S.address=v("in-addr")||"";S.notes=v("in-notes")||"";}
+  if(v("in-kw")!==null)S.kwInput=Math.max(1,+v("in-kw")||1);
+  if(v("in-rate")!==null)S.usdRate=Math.max(1,+v("in-rate")||1);
+}
+
+function setGround(v){S.isGround=v;S.manualCount=null;calc();renderBody(1);}
+function setRoof(k){S.roofKey=k;S.manualCount=null;calc();renderBody(1);}
+function setPM(m){S.powerMode=m;S.manualCount=null;calc();renderBody(2);}
+function setInvType(t){S.invType=t;S.manualNom=null;S.manualCount=null;calc();renderBody(3);}
+function toggleWithUZE(){S.invWithUZE=!S.invWithUZE;calc();renderBody(3);}
+function chgInv(d){S.manualCount=Math.max(1,(S.manualCount!==null?S.manualCount:(C.inv?.count||1))+d);calc();updateInvDisp();}
+function setInvCnt(n){S.manualCount=Math.max(1,n);calc();updateInvDisp();}
+function resetInv(){S.manualCount=null;calc();renderBody(3);}
+
+function updateInvDisp(){
+  const e=document.getElementById("in-inv-cnt");if(e)e.value=S.manualCount!==null?S.manualCount:(C.inv?.count||0);
+  const t=document.getElementById("ac-total-disp");if(t)t.textContent=`${C.inv?.totalAC||0} кВт`;
+}
+
+function updatePreviews(){
+  const p={
+    0:[S.clientName,S.address].filter(Boolean).join(" · ")||"",
+    1:S.isGround?"Наземна":(ROOF.find(r=>r.key===S.roofKey)?.label||""),
+    2:`${S.kwInput} кВт ${S.powerMode.toUpperCase()}`,
+    3:`${S.invType==="hybrid"?"Гібридний":"Мережевий"} · ${C.inv?.count||0}×${C.inv?.nominal||0} кВт`,
+    4:`${PANELS[S.panelIdx]?.label||""} · ${S.usdRate} грн/USD`,
+  };
+  Object.entries(p).forEach(([i,t])=>{const e=document.getElementById(`prev-${i}`);if(e)e.textContent=t;});
+}
+
+function updateMini(){
+  const $=id=>document.getElementById(id);
+  $("m-dc").textContent=`${C.actKwDC||"—"} кВт`;
+  $("m-ac").textContent=`${C.acActual||0} кВт`;
+  $("m-panels").textContent=`${C.np||0} шт`;
+  $("m-inv").textContent=`${C.inv?.count||0}×${C.inv?.nominal||0} кВт`;
+}
+
+function updateRight(){
+  const $=id=>document.getElementById(id);
+  $("r-kw").innerHTML=`${C.actKwDC} <span>кВт DC</span>`;
+  $("r-sub").textContent=`${C.np} панелей · ${C.strings} стрінгів · ${C.inv?.count}×${C.inv?.nominal} кВт AC`;
+
+  $("equip-grid").innerHTML=[
+    {lbl:"Панелей",val:`${C.np} шт`,sub:`${C.strings} стр × 17`,model:C.panel?.model},
+    {lbl:"AC потужність",val:`${C.acActual} кВт`,sub:`потреба: ${C.acNeeded} кВт`},
+    {lbl:`DEYE ${S.invType==="hybrid"?"HV Hybrid":"Grid"}`,val:`${C.inv?.count}×${C.inv?.nominal} кВт`,sub:`= ${C.inv?.totalAC} кВт AC`,model:C.inv?.model},
+    {lbl:"Кабель PV",val:`${C.cableKm} км`,sub:"1.5 км / 100 кВт"},
+  ].map(e=>`<div class="eq-item">
+    <div class="eq-lbl">${e.lbl}</div>
+    <div class="eq-val">${e.val}</div>
+    ${e.sub?`<div class="eq-sub">${e.sub}</div>`:""}
+    ${e.model?`<div class="eq-model">${e.model}</div>`:""}
+  </div>`).join("");
+
+  $("capex-rows").innerHTML=[
+    [`Панелі · ${C.panel?.model||""}`,C.panelCost,false],
+    [`Інвертори · ${C.inv?.model||""}`,C.invCost,S.invWithUZE],
+    ["Металоконструкція",C.mountCost,false],
+    ["Кабель PV DC",C.cableCost,false],
+    ["Мережі AC",C.acNetCost,S.invWithUZE],
+    ["Роботи БМР + ПНР",C.workCost,false],
+  ].map(([l,v,m])=>`<div class="capex-row">
+    <span class="capex-lbl${m?" muted":""}">${l}</span>
+    <span class="capex-val${m?" muted":""}">${m?"—":usd(v)}</span>
+  </div>`).join("");
+
+  $("tot-rows").innerHTML=`
+    <div class="tot-row"><span class="tot-lbl dim">Генпідряд 10%</span><span class="tot-val dim">${usd(C.genCost)}</span></div>
+    <div class="tot-row"><span class="tot-lbl">Всього без ПДВ</span><span class="tot-val bold">${usd(C.sesNoVAT)}</span></div>
+    <div class="tot-row"><span class="tot-lbl dim">ПДВ 20%</span><span class="tot-val dim">${usd(C.sesVAT)}</span></div>`;
+
+  $("total-usd").textContent=usd(C.sesWithVAT);
+  $("total-uah").textContent=uah(C.sesWithVAT,S.usdRate);
+  $("price-kw").textContent=`$${C.pricePerKw?.toFixed(0)}/кВт`;
+}
+
+// ═══════ COPY ═══════
+function copyResult(){
+  const title=[S.clientName,S.address].filter(Boolean).join(" · ")||`КП на СЕС ${C.invTotalAC} кВт`;
+  const txt=[
+    `📋 ${title}`,
+    "─".repeat(32),
+    `⚡ DC: ${C.actKwDC} кВт · Панелей: ${C.np} шт (${C.strings} стр.)`,
+    `🔌 Інвертори: ${C.inv?.count}×${C.inv?.nominal} кВт = ${C.inv?.totalAC} кВт AC`,
+    `📦 ${C.inv?.model}`,
+    "─".repeat(32),
+    `💰 Без ПДВ: ${usd(C.sesNoVAT)}`,
+    `💰 З ПДВ: ${usd(C.sesWithVAT)} · ${uah(C.sesWithVAT,S.usdRate)}`,
+    `📊 Ціна/кВт: $${C.pricePerKw?.toFixed(0)}/кВт`,
+    `💲 Курс: ${S.usdRate} грн/USD`,
+    `📅 КП дійсна до: ${kpDate()}`,
+  ].join("\n");
+  navigator.clipboard.writeText(txt).then(()=>{
+    const b=document.getElementById("btn-copy");
+    b.textContent="✅ Скопійовано!";b.classList.add("copied");
+    setTimeout(()=>{b.textContent="📋 Копіювати підсумок";b.classList.remove("copied");},2500);
+  });
+}
+
+// ═══════ KP PAGE ═══════
+function showKP(){
+  document.getElementById("calc-page").style.display="none";
+  document.getElementById("kp-page").style.display="block";
+  renderKP();
+  window.scrollTo(0,0);
+}
+function showCalc(){
+  document.getElementById("kp-page").style.display="none";
+  document.getElementById("calc-page").style.display="block";
+}
+
+function renderKP(){
+  const title=[S.clientName,S.address].filter(Boolean).join(" · ")||`Комерційна пропозиція на СЕС потужністю ${C.invTotalAC} кВт`;
+  const invLbl=S.invType==="hybrid"?"Гібридний":"Мережевий";
+  const today=new Date().toLocaleDateString("uk-UA");
+
+  const rows=[
+    {n:"1.1",show:true,name:`Фотомодулі ${C.panel?.label} · ${C.panel?.model}`,unit:"шт",qty:C.np,price:C.pUSD,sum:C.panelCost},
+    {n:"1.2",show:!S.invWithUZE,name:`${invLbl} інвертор DEYE ${C.inv?.nominal} кВт · ${C.inv?.model}`,unit:"шт",qty:C.inv?.count,price:C.inv?.price,sum:C.invCost},
+    {n:"1.3",show:true,name:`Металоконструкція (${C.mount?.label})`,unit:"шт",qty:C.np,price:C.mount?.price,sum:C.mountCost},
+    {n:"1.4",show:!S.invWithUZE,name:"Мережі DC/AC, кабельна продукція",unit:"компл.",qty:1,price:C.acNetCost,sum:C.acNetCost},
+    {n:"1.5",show:true,name:"PV кабель 6мм², витратні матеріали",unit:"км",qty:C.cableKm,price:CABLE_P,sum:C.cableCost},
+    {n:"2.1",show:true,name:"Будівельно-монтажні та пусконалагоджувальні роботи (матеріали, механізми, техніка)",unit:"послуга",qty:1,price:C.workCost,sum:C.workCost},
+  ].filter(r=>r.show);
+
+  const tbody=rows.map((r,idx)=>{
+    const isWork=r.n==="2.1";
+    const pre=idx===0
+      ?`<tr class="tr-g"><td colspan="8">1 · Капітальні витрати (CAPEX)</td></tr><tr class="tr-s"><td colspan="8">1.1 · Обладнання та матеріали</td></tr>`
+      :isWork?`<tr class="tr-s"><td colspan="8">1.2 · Роботи</td></tr>`:"";
+    const pw=`$${(r.sum/C.actKwDC).toFixed(1)}`;
+    return `${pre}<tr>
+      <td style="color:#94A3B8">${r.n}</td>
+      <td>${r.name}</td>
+      <td class="r" style="color:#64748B">${r.unit}</td>
+      <td class="r">${Number(r.qty)%1!==0?Number(r.qty).toFixed(2):r.qty}</td>
+      <td class="r">$${f2(r.price)}</td>
+      <td class="r" style="color:#0284C7">${pw}</td>
+      <td class="r" style="font-weight:700">$${f2(r.sum)}</td>
+      <td class="r" style="color:#64748B">${Math.round(r.sum*S.usdRate).toLocaleString("uk-UA")}</td>
+    </tr>`;
+  }).join("");
+
+  const totRows=[
+    ["Всього по проекту СЕС",C.sesTotal,"tr-tot"],
+    ["Послуги генерального підряду 10%",C.genCost,"tr-dim"],
+    ["Всього по проекту без ПДВ",C.sesNoVAT,"tr-tot"],
+    ["ПДВ 20%",C.sesVAT,"tr-dim"],
+    ["ВСЬОГО з ПДВ",C.sesWithVAT,"tr-acc"],
+  ].map(([l,v,cls])=>`<tr class="${cls}">
+    <td colspan="5" style="padding-left:16px">${l}</td>
+    <td class="r" style="color:${cls==="tr-acc"?"#fff":"#0284C7"}">$${(v/C.actKwDC).toFixed(1)}</td>
+    <td class="r">$${f2(v)}</td>
+    <td class="r">${Math.round(v*S.usdRate).toLocaleString("uk-UA")}</td>
+  </tr>`).join("");
+
+  document.getElementById("kp-doc").innerHTML=`
+    <div class="kp-banner">
+      <div>
+        <div class="kp-bn">Power Construction LLC.</div>
+        <div class="kp-bs">Engineering Procurement Construction</div>
+      </div>
+      <div class="kp-br">
+        <div class="kp-brl">Комерційна пропозиція</div>
+        <div class="kp-brd">${today}</div>
+      </div>
+    </div>
+
+    <div class="kp-title-block">
+      <div class="kp-proj-lbl">Щодо реалізації проєкту</div>
+      <div class="kp-proj-name">${title}</div>
+      <div class="kp-proj-desc">
+        ${S.isGround?"Наземна":"Дахова"} сонячна фотоелектрична станція
+        потужністю <strong>${C.actKwDC} кВт DC</strong>
+        для компенсації власного електроспоживання та зменшення витрат на електроенергію об'єкту.
+      </div>
+      <div class="kp-meta">
+        <div class="kp-meta-item"><div class="kp-mk">Дата КП</div><div class="kp-mv">${today}</div></div>
+        <div class="kp-meta-item"><div class="kp-mk">КП дійсна до</div><div class="kp-mv">${kpDate()}</div></div>
+        <div class="kp-meta-item"><div class="kp-mk">Курс USD/грн</div><div class="kp-mv">${S.usdRate} грн</div></div>
+        <div class="kp-meta-item"><div class="kp-mk">Ціна/кВт (без ПДВ)</div><div class="kp-mv">$${C.pricePerKw?.toFixed(0)}</div></div>
+      </div>
+    </div>
+
+    <div class="kp-tbl-wrap">
+      <div class="kp-tbl-hdr">
+        <div class="kp-tbl-title">Будівництво СЕС · ${C.actKwDC} кВт DC</div>
+        <div class="kp-tbl-sub">Курс USD/грн ${S.usdRate}</div>
+      </div>
+      <table class="kt">
+        <thead><tr>
+          <th style="width:40px">№</th><th>Найменування</th>
+          <th class="r" style="width:70px">Од.</th>
+          <th class="r" style="width:60px">Кіл-ть</th>
+          <th class="r" style="width:110px">Ціна, USD</th>
+          <th class="r" style="width:80px">$/кВт</th>
+          <th class="r" style="width:120px">Сума, USD</th>
+          <th class="r" style="width:130px">Сума, грн</th>
+        </tr></thead>
+        <tbody>
+          ${tbody}${totRows}
+          <tr class="tr-kw">
+            <td colspan="5" style="padding-left:16px">Вартість 1 кВт встановленої потужності (без ПДВ)</td>
+            <td class="r" style="font-weight:700;color:#92400E">$${C.pricePerKw?.toFixed(0)}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    ${S.notes?`<div class="kp-notes"><strong>Примітки:</strong> ${S.notes}</div>`:""}
+
+    <div class="kp-footer">
+      <p>* Дана КП є попередньою та призначена для ознайомлення Замовника з основними техніко-економічними показниками проекту СЕС на передбачуваній ділянці.</p>
+      <p>** Подальші етапи: отримання вихідних даних; погодження технічного завдання на проектування після виїзду на об'єкт.</p>
+      <p>*** Ціни та об'єми робіт уточнюються після розробки проєктної документації.</p>
+      <div class="kp-sign">З повагою,<br>Power Construction LLC.<br><small>тел. +38 (63) 710 83 38</small></div>
+    </div>`;
+}
+
+// ═══════ INIT ═══════
+buildUI();
+</script>
+</body>
+</html>
