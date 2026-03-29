@@ -121,9 +121,33 @@ code = code.replace('<td>${r.name}</td>', '<td>${r.name}</td>');
 const fetchInit = `
 const GIDS = { panels: "397532524", mounts: "134973451", gridInv: "457704901", hybridInv: "732265429", cable: "1236649776" };
 const B_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRLVRljrTAFt1BL9b7IBJBIxvHMc0PI2EAliBj1z6i2LkhjlnLSlqSHUNmJPIKLPHhYGdvkRUYmgxUb/pub?single=true&output=csv&gid=";
-function parseCSVLine(l){let r=[],c="",q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(ch==='"'){if(q&&l[i+1]==='"'){c+='"';i++;}else q=!q;}else if(ch===','&&!q){r.push(c);c="";}else c+=ch;}r.push(c);return r;}
+function parseCSV(text) {
+  let rows = [];
+  let cols = [];
+  let c = "";
+  let q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '"') {
+      if (q && text[i + 1] === '"') { c += '"'; i++; } else q = !q;
+    } else if (ch === ',' && !q) {
+      cols.push(c); c = "";
+    } else if ((ch === '\\n' || ch === '\\r') && !q) {
+      if (ch === '\\r' && text[i+1] === '\\n') i++;
+      cols.push(c.trim());
+      rows.push(cols);
+      cols = [];
+      c = "";
+    } else {
+      c += ch;
+    }
+  }
+  cols.push(c.trim());
+  if (cols.length > 1 || c !== "") rows.push(cols);
+  return rows;
+}
 function parsePrice(s){if(!s)return 0;const m=s.replace(',','.').match(/[\\d.]+/);return m?parseFloat(m[0]):0;}
-async function fetchCSV(g){const res=await fetch(B_URL+g);if(!res.ok)throw new Error("X");const t=await res.text();return t.split('\\n').map(l=>l.trim()).filter(Boolean).map(parseCSVLine);}
+async function fetchCSV(g){const res=await fetch(B_URL+g);if(!res.ok)throw new Error("X");const t=await res.text();return parseCSV(t);}
 
 async function initApp() {
   try {
