@@ -497,10 +497,10 @@ let PANELS=[];
 let H_INV={};
 let G_INV={};
 let MOUNT={
-  flat_south:{label:"Баластна Південь",price:25.50},
-  flat_ew:{label:"Баластна Схід-Захід",price:27.00},
-  pitched:{label:"Під металопрофіль",price:18.50},
-  ground:{label:"Наземна оцинкована",price:32.25},
+  flat_south:{label:"Баластна Південь",price:0},
+  flat_ew:{label:"Баластна Схід-Захід",price:0},
+  pitched:{label:"Під металопрофіль",price:0},
+  ground:{label:"Наземна оцинкована",price:0},
 };
 const ROOF=[
   {key:"flat_south",label:"Плоский дах — Південь",orient:"south"},
@@ -509,7 +509,7 @@ const ROOF=[
 ];
 const DC_AC={south:1.3,ew:1.6};
 const STR=17, CABLE_K=1.5, AC_KW=35, GEN=0.10, VAT=0.20, KP_DAYS=10;
-let CABLE_P = 1009;
+let CABLE_P = 0;
 const STORE="solar_kp_v21";
 
 // ═══════ STATE ═══════
@@ -1218,10 +1218,12 @@ async function initApp() {
       }
     }
 
-    localStorage.setItem("skp_cache_v21", JSON.stringify({PANELS, H_INV, G_INV, MOUNT, CABLE_P}));
+    localStorage.setItem("skp_cache_v22", JSON.stringify({PANELS, H_INV, G_INV, MOUNT, CABLE_P}));
   } catch(e) {
     console.warn("Google Sheets error, using cache", e);
-    const cStr=localStorage.getItem("skp_cache_v21");
+    const badgeEl=document.querySelector('.badge');
+    if(badgeEl) badgeEl.textContent='⚠️ Прайс не завантажено!';
+    const cStr=localStorage.getItem("skp_cache_v22");
     if(cStr){
        try {
          const c=JSON.parse(cStr);
