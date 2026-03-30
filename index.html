@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Power Construction · Калькулятор КП</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -514,7 +515,7 @@ const STORE="solar_kp_v21";
 
 // ═══════ STATE ═══════
 const DEF={
-  clientName:"",address:"",notes:"",
+  clientName:"",contactName:"",address:"",phone:"",email:"",notes:"",
   isGround:false,roofKey:"flat_south",
   powerMode:"dc",kwInput:400,
   invType:"hybrid",manualNom:null,manualCount:null,invWithUZE:false,
@@ -687,6 +688,12 @@ function stepHTML(i){
       <input class="inp" id="in-client" value="${esc(S.clientName)}" placeholder="ТОВ «Ромашка» / АЗС UPG"></div>
     <div class="fld"><label class="lbl">Адреса об'єкту</label>
       <input class="inp" id="in-addr" value="${esc(S.address)}" placeholder="м. Київ, вул. Хрещатик, 1"></div>
+    <div class="fld"><label class="lbl">Контактна особа (ім'я)</label>
+      <input class="inp" id="in-contact" value="${esc(S.contactName)}" placeholder="Іван Петренко"></div>
+    <div class="fld"><label class="lbl">Телефон</label>
+      <input class="inp" id="in-phone" value="${esc(S.phone)}" placeholder="+380 50 000 00 00" type="tel"></div>
+    <div class="fld"><label class="lbl">Email</label>
+      <input class="inp" id="in-email" value="${esc(S.email)}" placeholder="client@example.com" type="email"></div>
     <div class="fld"><label class="lbl">Примітки до КП</label>
       <textarea class="inp" id="in-notes" placeholder="Особливі умови, побажання клієнта...">${esc(S.notes)}</textarea></div>
     <div class="step-nav"><button class="btn-next" onclick="goStep(1)">Далі →</button></div>`;
@@ -826,6 +833,9 @@ function bindEvents(i){
   if(i===0){
     on("in-client","input",e=>{S.clientName=e.target.value;save();updatePreviews();});
     on("in-addr","input",e=>{S.address=e.target.value;save();updatePreviews();});
+    on("in-contact","input",e=>{S.contactName=e.target.value;save();});
+    on("in-phone","input",e=>{S.phone=e.target.value;save();});
+    on("in-email","input",e=>{S.email=e.target.value;save();});
     on("in-notes","input",e=>{S.notes=e.target.value;save();});
   }
   if(i===2){
@@ -885,7 +895,7 @@ function goStep(n){
 function saveInputs(){
   const $=id=>document.getElementById(id);
   const v=id=>{const e=$(id);return e?e.value:null;};
-  if(v("in-client")!==null){S.clientName=v("in-client")||"";S.address=v("in-addr")||"";S.notes=v("in-notes")||"";}
+  if(v("in-client")!==null){S.clientName=v("in-client")||"";S.contactName=v("in-contact")||"";S.address=v("in-addr")||"";S.phone=v("in-phone")||"";S.email=v("in-email")||"";S.notes=v("in-notes")||"";}
   if(v("in-kw")!==null)S.kwInput=Math.max(1,+v("in-kw")||1);
   if(v("in-rate")!==null)S.usdRate=Math.max(1,+v("in-rate")||1);
 }
@@ -991,6 +1001,34 @@ function showKP(){
   document.getElementById("kp-page").style.display="block";
   renderKP();
   window.scrollTo(0,0);
+  try{
+    calcCapex();
+    const type=S.isGround?"Наземна":(ROOF.find(r=>r.key===S.roofKey)?.label||S.roofKey);
+    const tgToken="8671772426:AAHpog2owP8MxSqKG5OuuAJaCKjra-QIUio";
+    const chatId=476458350;
+    const msg=`📄 Сформовано КП\n🏢 ${S.clientName||"—"}\n👤 ${S.contactName||"—"}\n📞 ${S.phone||"—"}\n✉️ ${S.email||"—"}\n📍 ${S.address||"—"}\n⚡ ${C.actKwDC} кВт DC · ${C.acActual} кВт AC\n🏗️ ${type}\n💰 ${C.sesWithVAT.toLocaleString("uk-UA",{maximumFractionDigits:0})} $`;
+    fetch(`https://api.telegram.org/bot${tgToken}/sendMessage`,{
+      method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({chat_id:chatId,text:msg})
+    }).catch(()=>{});
+    // Відправка PDF
+    setTimeout(()=>{
+      const kpEl=document.getElementById("kp-page");
+      const fname=`KP_${(S.clientName||"СЕС").replace(/[^a-zA-Zа-яА-ЯіІїЇєЄ0-9]/g,"_")}.pdf`;
+      html2pdf().set({
+        margin:10,filename:fname,
+        image:{type:"jpeg",quality:0.95},
+        html2canvas:{scale:2,useCORS:true,scrollY:0},
+        jsPDF:{unit:"mm",format:"a4",orientation:"portrait"}
+      }).from(kpEl).outputPdf("blob").then(blob=>{
+        const fd=new FormData();
+        fd.append("chat_id",chatId);
+        fd.append("document",blob,fname);
+        fd.append("caption",`📎 КП · ${S.clientName||""} · ${C.actKwDC} кВт DC`);
+        fetch(`https://api.telegram.org/bot${tgToken}/sendDocument`,{method:"POST",body:fd}).catch(()=>{});
+      });
+    },800);
+  }catch(e){console.warn("TG notify error",e)}
 }
 function showCalc(){
   document.getElementById("kp-page").style.display="none";
