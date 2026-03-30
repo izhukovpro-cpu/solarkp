@@ -579,7 +579,7 @@ function calcCapex(){
     inv={...ai,count:cnt,totalAC:cnt*ai.nominal};
   }
 
-  const cableKm=parseFloat(((actKwDC/100)*(S.isGround?1.2:CABLE_K)).toFixed(2));
+  const cableKm=parseFloat(((actKwDC/100)*CABLE_K).toFixed(2));
   const workRate=getWR(actKwDC,S.isGround);
   const panelCost=np*pUSD;
   const invCost=S.invWithUZE?0:inv.count*inv.price;
@@ -932,7 +932,7 @@ function updateRight(){
     {lbl:"Панелей",val:`${C.np} шт`,sub:`${C.strings} стр × 17`,model:C.panel?.model},
     {lbl:"AC потужність",val:`${C.acActual} кВт`,sub:`потреба: ${C.acNeeded} кВт`},
     {lbl:`DEYE ${S.invType==="hybrid"?"HV Hybrid":"Grid"}`,val:`${C.inv?.count}×${C.inv?.nominal} кВт`,sub:`= ${C.inv?.totalAC} кВт AC`,model:C.inv?.model},
-    {lbl:"Кабель PV",val:`${C.cableKm} км`,sub:`${S.isGround?"1.2":"1.5"} км / 100 кВт`},
+    {lbl:"Кабель PV",val:`${C.cableKm} км`,sub:"1.5 км / 100 кВт"},
   ].map(e=>`<div class="eq-item">
     <div class="eq-lbl">${e.lbl}</div>
     <div class="eq-val">${e.val}</div>
@@ -1198,30 +1198,22 @@ async function initApp() {
     H_INV={}; G_INV={};
     parseI(hCSV, H_INV); parseI(gCSV, G_INV);
 
-    for(const r of cCSV){
-      const model=(r[0]||"").trim().toLowerCase();
-      const desc=(r[1]||"").trim();
-      const priceStr=r[4];
-      const isCable=model.includes("кабель")||desc.includes("6мм")||desc.includes("1*6");
-      if(isCable&&priceStr){
-        const p=parsePrice(priceStr);
-        if(p>0){
-          const rollMatch=desc.match(/(\d{3,})\s*м/);
-          const rollM=rollMatch?parseInt(rollMatch[1]):1;
-          CABLE_P=rollM>1?(p/rollM*1000):(p*1000);
-        }
+    for(const r of cCSV){ 
+      const desc=r[1]?(r[1].trim()):"", priceStr=r[4]; 
+      if(desc&&desc.includes("1*6")&&priceStr){ 
+        const p=parsePrice(priceStr); if(p>0) CABLE_P=p*1000; 
       }
     }
 
     for(const r of mCSV){
-      const model=(r[0]||"").trim().toLowerCase(), priceStr=r[4];
-      if(model&&priceStr){
+      const desc=r[1]?(r[1].trim()):"", priceStr=r[4];
+      if(desc&&priceStr){
         const p=parsePrice(priceStr);
         if(p>0){
-          if(model.includes("південь")) MOUNT.flat_south.price=p;
-          else if(model.includes("захід")) MOUNT.flat_ew.price=p;
-          else if(model.includes("скатн")||model.includes("металопрофіль")) MOUNT.pitched.price=p;
-          else if(model.includes("наземн")) MOUNT.ground.price=p;
+          if(desc.includes("Південь")) MOUNT.flat_south.price=p;
+          else if(desc.includes("Схід-Захід")) MOUNT.flat_ew.price=p;
+          else if(desc.includes("металопрофіль")) MOUNT.pitched.price=p;
+          else if(desc.includes("Наземна")) MOUNT.ground.price=p;
         }
       }
     }
