@@ -1198,22 +1198,22 @@ async function initApp() {
     H_INV={}; G_INV={};
     parseI(hCSV, H_INV); parseI(gCSV, G_INV);
 
-    for(const r of cCSV){ 
-      const desc=r[1]?(r[1].trim()):"", priceStr=r[4]; 
-      if(desc&&desc.includes("1*6")&&priceStr){ 
-        const p=parsePrice(priceStr); if(p>0) CABLE_P=p*1000; 
+    for(const r of cCSV){
+      const desc=r[0]?(r[0].trim()):"", priceStr=r[4];
+      if(desc&&desc.includes("1*6")&&priceStr){
+        const p=parsePrice(priceStr); if(p>0) CABLE_P=p*1000;
       }
     }
 
     for(const r of mCSV){
-      const desc=r[1]?(r[1].trim()):"", priceStr=r[4];
+      const desc=r[0]?(r[0].trim().toLowerCase()):"", priceStr=r[4];
       if(desc&&priceStr){
         const p=parsePrice(priceStr);
         if(p>0){
-          if(desc.includes("Південь")) MOUNT.flat_south.price=p;
-          else if(desc.includes("Схід-Захід")) MOUNT.flat_ew.price=p;
+          if(desc.includes("південь")) MOUNT.flat_south.price=p;
+          else if(desc.includes("схід-захід")) MOUNT.flat_ew.price=p;
           else if(desc.includes("металопрофіль")) MOUNT.pitched.price=p;
-          else if(desc.includes("Наземна")) MOUNT.ground.price=p;
+          else if(desc.includes("наземна")) MOUNT.ground.price=p;
         }
       }
     }
