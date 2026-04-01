@@ -535,8 +535,8 @@ const uah=(n,r)=>`${Math.round(n*r).toLocaleString("uk-UA")} грн`;
 function kpDate(){const d=new Date();d.setDate(d.getDate()+KP_DAYS);return d.toLocaleDateString("uk-UA");}
 
 function getWR(kw,ig){
-  if(ig)return kw<500?65:55;
-  if(kw<=100)return 65;if(kw<=500)return 55;return 50;
+  if(ig)return kw<500?75:55;
+  if(kw<=100)return 75;if(kw<=500)return 55;return 50;
 }
 function nPanels(kwDC,pwr,ig){
   const raw=(kwDC*1000)/pwr;
