@@ -498,10 +498,10 @@ let PANELS=[];
 let H_INV={};
 let G_INV={};
 let MOUNT={
-  flat_south:{label:"Баластна Південь",price:0},
-  flat_ew:{label:"Баластна Схід-Захід",price:0},
-  pitched:{label:"Під металопрофіль",price:0},
-  ground:{label:"Наземна оцинкована",price:0},
+  flat_south:{label:"Плоский дах — Південь",price:0},
+  flat_ew:{label:"Плоский дах — Схід-Захід",price:0},
+  pitched:{label:"Скатна покрівля",price:0},
+  ground:{label:"Наземна",price:0},
 };
 const ROOF=[
   {key:"flat_south",label:"Плоский дах — Південь",orient:"south"},
@@ -1211,11 +1211,15 @@ async function initApp() {
     for(const r of pCSV){
       if(r.length>=5){
         const model=r[0]?(r[0].trim()):"", desc=r[1]?(r[1].trim()):"", avail=r[2]?(r[2].trim()):"", priceStr=r[4];
-        if(model&&desc&&priceStr&&!model.includes("Модель")){
+        const effectiveModel=model||(desc?desc.replace(/^Сонячна панель\s*/i,"").split(/\s+/).slice(0,2).join(" "):"");
+        if(effectiveModel&&desc&&priceStr&&!effectiveModel.includes("Модель")&&!desc.includes("Короткий опис")){
            const price = parsePrice(priceStr);
-           const powMatch=desc.match(/(\d+)\s*(В|W|Вт)/i);
+           const powMatch=desc.match(/(\d+)\s*(В|W|Вт)/i)
+             ||(model?model.match(/(\d+)\s*(В|W|Вт)/i):null)
+             ||desc.match(/[-](\d{3,4})[NnWMm]/i)
+             ||(model?model.match(/[-](\d{3,4})[NnWMm]/i):null);
            const pow=powMatch?parseInt(powMatch[1]):0;
-           if(pow>0 && price>0) PANELS.push({model, label:desc.split(' ').slice(0,6).join(' '), power:pow, price, avail});
+           if(pow>0 && price>0) PANELS.push({model:effectiveModel, label:desc.split(' ').slice(0,6).join(' '), power:pow, price, avail});
         }
       }
     }
@@ -1223,8 +1227,9 @@ async function initApp() {
     const parseI = (csv, map) => {
       for(const r of csv){
         if(r.length>=5){
-          const model=r[0]?(r[0].trim()):"", desc=r[1]?(r[1].trim()):"", priceStr=r[4];
-          if(model&&priceStr&&!model.includes("Модель")){
+          const model=(r[0]?r[0].trim():"")||(r[1]?r[1].trim():"");
+          const desc=r[1]?(r[1].trim()):"", priceStr=r[4];
+          if(model&&priceStr&&!model.includes("Модель")&&!model.includes("Короткий")){
             const price = parsePrice(priceStr);
             const kwMatch=model.match(/(\d+)K/i)||desc.match(/(\d+)\s*[kк][WВ]/i);
             const nom=kwMatch?parseInt(kwMatch[1]):0;

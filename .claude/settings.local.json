@@ -6,7 +6,17 @@
       "Read(//tmp/ui-ux-skill/.claude/**)",
       "Read(//tmp/ui-ux-skill/**)",
       "Read(//tmp/**)",
-      "Bash(python3 \"C:/Users/gykov/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"solar energy B2B calculator commercial proposal tool\" --design-system -p \"SolarKP\" -f markdown)"
+      "Bash(python3 \"C:/Users/gykov/.claude/skills/ui-ux-pro-max/scripts/search.py\" \"solar energy B2B calculator commercial proposal tool\" --design-system -p \"SolarKP\" -f markdown)",
+      "Read(//g/Мій диск/Claude/SolarKP HTML/**)",
+      "Bash(cmd /c \"dir \\\\\"g:\\\\Мій диск\\\\Claude\\\\SolarKP HTML\\\\Дилерський Прайс .gsheet\\\\\"\")",
+      "Bash(curl -s \"https://docs.google.com/spreadsheets/d/e/2PACX-1vRLVRljrTAFt1BL9b7IBJBIxvHMc0PI2EAliBj1z6i2LkhjlnLSlqSHUNmJPIKLPHhYGdvkRUYmgxUb/pub?single=true&output=csv&gid=134973451\")",
+      "Bash(curl -sL \"https://docs.google.com/spreadsheets/d/e/2PACX-1vRLVRljrTAFt1BL9b7IBJBIxvHMc0PI2EAliBj1z6i2LkhjlnLSlqSHUNmJPIKLPHhYGdvkRUYmgxUb/pub?single=true&output=csv&gid=134973451\")",
+      "Bash(curl -sL \"https://docs.google.com/spreadsheets/d/1MszfX0zqolwNRsuz4764QnpkTQAewYlJULyQaDHR9ZU/pub?single=true&output=csv&gid=1236649776\")",
+      "Bash(curl -sL 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLVRljrTAFt1BL9b7IBJBIxvHMc0PI2EAliBj1z6i2LkhjlnLSlqSHUNmJPIKLPHhYGdvkRUYmgxUb/pub?single=true&output=csv&gid=1236649776')",
+      "Bash(grep -v \"^$\")",
+      "Bash(curl -sL 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLVRljrTAFt1BL9b7IBJBIxvHMc0PI2EAliBj1z6i2LkhjlnLSlqSHUNmJPIKLPHhYGdvkRUYmgxUb/pub?single=true&output=csv&gid=397532524')",
+      "Bash(grep -v \"^[[:space:]]*$\")",
+      "Bash(curl -sL 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRLVRljrTAFt1BL9b7IBJBIxvHMc0PI2EAliBj1z6i2LkhjlnLSlqSHUNmJPIKLPHhYGdvkRUYmgxUb/pub?single=true&output=csv&gid=732265429')"
     ]
   }
 }
